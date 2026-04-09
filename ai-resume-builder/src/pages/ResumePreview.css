@@ -1,0 +1,50 @@
+/* ResumePreview.css */
+
+.resume-preview {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  color: #333;
+  font-family: 'Arial', sans-serif;
+}
+
+.resume-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.resume-header h1 {
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+.resume-header p {
+  font-size: 18px;
+  color: #555;
+}
+
+.contact-info {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  font-size: 14px;
+  color: #444;
+}
+
+.resume-section {
+  margin-bottom: 15px;
+}
+
+.resume-section h3 {
+  font-size: 18px;
+  color: #0ea5e9;
+  margin-bottom: 5px;
+}
+
+.resume-section p, .education-item {
+  font-size: 14px;
+  margin-bottom: 3px;
+}
