@@ -107,29 +107,18 @@ function Portfolio() {
     setSaveStatus("saving");
     try {
       const token = localStorage.getItem("token");
-      const formData = new FormData();
-      
-      // Append all user data to formData
-      Object.keys(user).forEach(key => {
-        if (user[key] !== null && user[key] !== undefined) {
-          formData.append(key, user[key]);
-        }
-      });
-      
       const res = await axios.post(
         "http://localhost:5000/api/profile/save",
-        formData,
-        { 
-          headers: { 
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          } 
-        }
+        user,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (res.data.success) {
         setSaveStatus("success");
         setIsEditing(false);
+        if (res.data.profile && res.data.profile.userId) {
+          setUserId(res.data.profile.userId);
+        }
         setTimeout(() => setSaveStatus(null), 3000);
       } else {
         setSaveStatus("error");
@@ -191,66 +180,33 @@ function Portfolio() {
   };
 
   const shareViaEmail = () => {
-    const link = getShareableLink();
     const subject = encodeURIComponent(`${user.name || "My"} Professional Portfolio`);
     const body = encodeURIComponent(
       `Hello,\n\n` +
       `I'd like to share my professional portfolio with you.\n\n` +
-      `${user.name || "I"} am ${user.role || "a professional"} with expertise in ${user.skills?.split(',').slice(0, 3).join(', ') || "various skills"}.\n\n` +
-      `View my complete portfolio here: ${link}\n\n` +
-      `Key Highlights:\n` +
-      `${user.about ? `• ${user.about.substring(0, 100)}...\n` : ''}` +
-      `${user.experience ? `• ${user.experience.split('\n')[0]}\n` : ''}` +
-      `${user.projects ? `• ${user.projects.split('\n')[0]}\n` : ''}\n` +
-      `Best regards,\n` +
-      `${user.name || "Candidate"}\n` +
-      `${user.phone || ""}\n` +
-      `${user.email || ""}`
+      `View my portfolio here: ${getShareableLink()}\n\n` +
+      `Best regards,\n${user.name || "Candidate"}`
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
     setShowShareModal(false);
   };
 
   const shareViaLinkedIn = () => {
-    const link = getShareableLink();
-    // LinkedIn share URL format
-    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`;
-    
-    // Open in new window
-    window.open(linkedinUrl, '_blank', 'width=600,height=600');
+    const url = getShareableLink();
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
     setShowShareModal(false);
   };
 
   const shareViaTwitter = () => {
-    const link = getShareableLink();
-    const text = encodeURIComponent(
-      `Check out my professional portfolio! ${user.name || "I'm"} ${user.role || "a professional"}. Skills: ${user.skills?.split(',').slice(0, 3).join(', ') || "Various skills"}. View here:`
-    );
-    
-    // Twitter share URL format
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}%20${encodeURIComponent(link)}`;
-    
-    // Open in new window
-    window.open(twitterUrl, '_blank', 'width=600,height=400');
+    const url = getShareableLink();
+    const text = encodeURIComponent(`Check out my professional portfolio! ${user.name || "Candidate"} - ${user.role || "Professional"}`);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
     setShowShareModal(false);
   };
 
   const shareViaWhatsApp = () => {
-    const link = getShareableLink();
-    const text = encodeURIComponent(
-      `🚀 *${user.name || "My"} Professional Portfolio*\n\n` +
-      `👤 *Role:* ${user.role || "Professional"}\n` +
-      `💡 *Skills:* ${user.skills?.split(',').slice(0, 3).join(', ') || "Various skills"}\n\n` +
-      `📄 *About:* ${user.about?.substring(0, 100) || "Check out my portfolio"}\n\n` +
-      `🔗 *View Portfolio:* ${link}\n\n` +
-      `✨ *Highlights:*\n` +
-      `${user.experience ? `• ${user.experience.split('\n')[0].substring(0, 60)}\n` : ''}` +
-      `${user.projects ? `• ${user.projects.split('\n')[0].substring(0, 60)}\n` : ''}\n` +
-      `Best regards,\n` +
-      `${user.name || "Candidate"}`
-    );
-    
-    // WhatsApp share URL
+    const url = getShareableLink();
+    const text = encodeURIComponent(`Check out my professional portfolio! ${user.name || "Candidate"} - ${user.role || "Professional"}\n\nView here: ${url}`);
     window.open(`https://wa.me/?text=${text}`, '_blank');
     setShowShareModal(false);
   };
@@ -323,7 +279,7 @@ function Portfolio() {
               className="social-link"
             >
               <FiLinkedin />
-              <span>LinkedIn</span>
+              <span>{user.linkedin.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}</span>
             </a>
           )}
           {user.github && (
