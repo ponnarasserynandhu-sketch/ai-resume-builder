@@ -23,8 +23,13 @@ import {
   FiStar,
   FiArrowRight,
   FiEye,
-  FiPrinter
+  FiPrinter,
+  FiLink,
+  FiShare2,
+  FiCopy,
+  FiCheck
 } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 function Portfolio() {
   const [user, setUser] = useState({
@@ -53,12 +58,16 @@ function Portfolio() {
     degreeCourse: "",
     degreePercentage: "",
     degreeYear: "",
-    profilePhoto: ""
+    profilePhoto: "",
+    portfolioUrl: ""
   });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [userId, setUserId] = useState(null);
   const portfolioRef = useRef();
 
   useEffect(() => {
@@ -78,6 +87,9 @@ function Portfolio() {
 
       if (res.data.success && res.data.profile) {
         setUser(prev => ({ ...prev, ...res.data.profile }));
+        if (res.data.profile.userId) {
+          setUserId(res.data.profile.userId);
+        }
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -95,10 +107,24 @@ function Portfolio() {
     setSaveStatus("saving");
     try {
       const token = localStorage.getItem("token");
+      const formData = new FormData();
+      
+      // Append all user data to formData
+      Object.keys(user).forEach(key => {
+        if (user[key] !== null && user[key] !== undefined) {
+          formData.append(key, user[key]);
+        }
+      });
+      
       const res = await axios.post(
         "http://localhost:5000/api/profile/save",
-        user,
-        { headers: { Authorization: `Bearer ${token}` } }
+        formData,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          } 
+        }
       );
 
       if (res.data.success) {
@@ -142,6 +168,93 @@ function Portfolio() {
     }
   };
 
+  const getShareableLink = () => {
+    const baseUrl = window.location.origin;
+    if (userId) {
+      return `${baseUrl}/portfolio/share/${userId}`;
+    } else if (user.email) {
+      const encodedEmail = btoa(user.email).replace(/=/g, '');
+      return `${baseUrl}/portfolio/share/${encodedEmail}`;
+    }
+    return `${baseUrl}/portfolio/share/temp`;
+  };
+
+  const copyToClipboard = async () => {
+    const link = getShareableLink();
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const shareViaEmail = () => {
+    const link = getShareableLink();
+    const subject = encodeURIComponent(`${user.name || "My"} Professional Portfolio`);
+    const body = encodeURIComponent(
+      `Hello,\n\n` +
+      `I'd like to share my professional portfolio with you.\n\n` +
+      `${user.name || "I"} am ${user.role || "a professional"} with expertise in ${user.skills?.split(',').slice(0, 3).join(', ') || "various skills"}.\n\n` +
+      `View my complete portfolio here: ${link}\n\n` +
+      `Key Highlights:\n` +
+      `${user.about ? `• ${user.about.substring(0, 100)}...\n` : ''}` +
+      `${user.experience ? `• ${user.experience.split('\n')[0]}\n` : ''}` +
+      `${user.projects ? `• ${user.projects.split('\n')[0]}\n` : ''}\n` +
+      `Best regards,\n` +
+      `${user.name || "Candidate"}\n` +
+      `${user.phone || ""}\n` +
+      `${user.email || ""}`
+    );
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    setShowShareModal(false);
+  };
+
+  const shareViaLinkedIn = () => {
+    const link = getShareableLink();
+    // LinkedIn share URL format
+    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}`;
+    
+    // Open in new window
+    window.open(linkedinUrl, '_blank', 'width=600,height=600');
+    setShowShareModal(false);
+  };
+
+  const shareViaTwitter = () => {
+    const link = getShareableLink();
+    const text = encodeURIComponent(
+      `Check out my professional portfolio! ${user.name || "I'm"} ${user.role || "a professional"}. Skills: ${user.skills?.split(',').slice(0, 3).join(', ') || "Various skills"}. View here:`
+    );
+    
+    // Twitter share URL format
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}%20${encodeURIComponent(link)}`;
+    
+    // Open in new window
+    window.open(twitterUrl, '_blank', 'width=600,height=400');
+    setShowShareModal(false);
+  };
+
+  const shareViaWhatsApp = () => {
+    const link = getShareableLink();
+    const text = encodeURIComponent(
+      `🚀 *${user.name || "My"} Professional Portfolio*\n\n` +
+      `👤 *Role:* ${user.role || "Professional"}\n` +
+      `💡 *Skills:* ${user.skills?.split(',').slice(0, 3).join(', ') || "Various skills"}\n\n` +
+      `📄 *About:* ${user.about?.substring(0, 100) || "Check out my portfolio"}\n\n` +
+      `🔗 *View Portfolio:* ${link}\n\n` +
+      `✨ *Highlights:*\n` +
+      `${user.experience ? `• ${user.experience.split('\n')[0].substring(0, 60)}\n` : ''}` +
+      `${user.projects ? `• ${user.projects.split('\n')[0].substring(0, 60)}\n` : ''}\n` +
+      `Best regards,\n` +
+      `${user.name || "Candidate"}`
+    );
+    
+    // WhatsApp share URL
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+    setShowShareModal(false);
+  };
+
   const skillsList = user.skills?.split(',').map(s => s.trim()).filter(s => s) || [];
   const projectsList = user.projects?.split('\n').filter(p => p.trim()) || [];
   const experienceList = user.experience?.split('\n').filter(e => e.trim()) || [];
@@ -154,14 +267,12 @@ function Portfolio() {
 
   const renderPortfolio = () => (
     <div className="portfolio-preview" ref={portfolioRef}>
-      {/* Animated Background */}
       <div className="portfolio-bg-animation">
         <div className="gradient-sphere sphere-1"></div>
         <div className="gradient-sphere sphere-2"></div>
         <div className="gradient-sphere sphere-3"></div>
       </div>
 
-      {/* Hero Section */}
       <div className="portfolio-hero">
         <div className="hero-badge">
           <FiStar className="star-icon" />
@@ -212,7 +323,7 @@ function Portfolio() {
               className="social-link"
             >
               <FiLinkedin />
-              <span>{user.linkedin}</span>
+              <span>LinkedIn</span>
             </a>
           )}
           {user.github && (
@@ -241,7 +352,6 @@ function Portfolio() {
       </div>
 
       <div className="portfolio-inner">
-        {/* About Section - Highlighted */}
         {user.about && (
           <div className="portfolio-section about-section">
             <div className="section-header">
@@ -255,7 +365,6 @@ function Portfolio() {
           </div>
         )}
 
-        {/* Skills Section */}
         {skillsList.length > 0 && (
           <div className="portfolio-section skills-section">
             <div className="section-header">
@@ -277,7 +386,6 @@ function Portfolio() {
           </div>
         )}
 
-        {/* Experience Section */}
         {experienceList.length > 0 && (
           <div className="portfolio-section experience-section">
             <div className="section-header">
@@ -304,7 +412,6 @@ function Portfolio() {
           </div>
         )}
 
-        {/* Education Section */}
         {(user.tenthSchool || user.interCollege || user.degreeCollege) && (
           <div className="portfolio-section education-section">
             <div className="section-header">
@@ -358,7 +465,6 @@ function Portfolio() {
           </div>
         )}
 
-        {/* Projects Section */}
         {projectsList.length > 0 && (
           <div className="portfolio-section projects-section">
             <div className="section-header">
@@ -385,7 +491,6 @@ function Portfolio() {
           </div>
         )}
 
-        {/* Certifications Section */}
         {certificatesList.length > 0 && (
           <div className="portfolio-section certifications-section">
             <div className="section-header">
@@ -404,7 +509,6 @@ function Portfolio() {
           </div>
         )}
 
-        {/* Languages Section */}
         {languagesList.length > 0 && (
           <div className="portfolio-section languages-section">
             <div className="section-header">
@@ -442,7 +546,6 @@ function Portfolio() {
   return (
     <div className="portfolio-container">
       <div className="portfolio-wrapper">
-        {/* Header */}
         <div className="portfolio-header">
           <div className="header-content">
             <div className="header-logo">
@@ -455,6 +558,10 @@ function Portfolio() {
               </div>
             </div>
           </div>
+          <button className="share-btn-header" onClick={() => setShowShareModal(true)}>
+            <FiShare2 size={18} />
+            Share Portfolio
+          </button>
         </div>
 
         <div className="header-actions">
@@ -480,23 +587,88 @@ function Portfolio() {
           )}
         </div>
 
-        {/* Action Buttons - Large and Left Aligned */}
         <div className="portfolio-actions">
           <button className={`action-btn preview-btn ${!isEditing ? 'active' : ''}`} onClick={() => setIsEditing(false)}>
-            <FiEye size={22} />
+            <FiEye size={20} />
             Preview
           </button>
           <button className={`action-btn edit-btn ${isEditing ? 'active' : ''}`} onClick={() => setIsEditing(true)}>
-            <FiEdit2 size={22} />
+            <FiEdit2 size={20} />
             Edit Data
           </button>
           <button className="action-btn export-btn" onClick={exportAsPDF}>
-            <FiPrinter size={22} />
+            <FiPrinter size={20} />
             Export Portfolio
           </button>
         </div>
 
-        {/* Main Content */}
+        {showShareModal && (
+          <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
+            <div className="share-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>
+                  <FiShare2 /> Share Your Portfolio
+                </h3>
+                <button className="close-modal" onClick={() => setShowShareModal(false)}>
+                  <FiX />
+                </button>
+              </div>
+              
+              <div className="modal-body">
+                <p className="share-description">
+                  Share this link with potential employers to showcase your skills and experience.
+                </p>
+                
+                <div className="share-link-container">
+                  <div className="share-link-input">
+                    <FiLink className="link-icon" />
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={getShareableLink()} 
+                      id="shareLink"
+                      onClick={(e) => e.target.select()}
+                    />
+                  </div>
+                  <button className="copy-btn" onClick={copyToClipboard}>
+                    {copied ? <FiCheck /> : <FiCopy />}
+                    {copied ? "Copied!" : "Copy"}
+                  </button>
+                </div>
+                
+                <div className="share-options">
+                  <p className="share-options-title">Or share via:</p>
+                  <div className="share-buttons">
+                    <button className="share-option-btn email" onClick={shareViaEmail}>
+                      <FiMail />
+                      Email
+                    </button>
+                    <button className="share-option-btn linkedin" onClick={shareViaLinkedIn}>
+                      <FiLinkedin />
+                      LinkedIn
+                    </button>
+                    <button className="share-option-btn twitter" onClick={shareViaTwitter}>
+                      <FiTwitter />
+                      Twitter
+                    </button>
+                    <button className="share-option-btn whatsapp" onClick={shareViaWhatsApp}>
+                      <FaWhatsapp />
+                      WhatsApp
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="share-tip">
+                  <small>
+                    💡 Tip: Make sure your portfolio is complete before sharing. 
+                    Employers love seeing detailed experience and project information!
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="portfolio-content">
           {!isEditing ? (
             <div className="portfolio-preview-container">

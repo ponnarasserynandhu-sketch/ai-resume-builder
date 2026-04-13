@@ -12,6 +12,8 @@ const ProfileSchema = new mongoose.Schema({
   address: String,
   role: String,
   linkedin: String,
+  github: String,
+  twitter: String,
   about: String,
   skills: String,
   experience: String,
@@ -33,7 +35,8 @@ const ProfileSchema = new mongoose.Schema({
   degreePercentage: String,
   degreeYear: String,
 
-  profilePhoto: String
+  profilePhoto: String,
+  portfolioUrl: String
 }, { timestamps: true });
 
 module.exports = mongoose.model("Profile", ProfileSchema);

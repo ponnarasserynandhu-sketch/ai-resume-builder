@@ -18,15 +18,21 @@ import {
   FiBookOpen,
   FiCheckCircle,
   FiSave,
-  FiCheck
+  FiCheck,
+  FiDroplet,
+  FiAward,
+  FiStar,
+  FiGlobe,
+  FiTrendingUp,
+  FiCode
 } from "react-icons/fi";
 
-// Template components
-const TemplateClassic = ({ user }) => (
+// Template components with full color support
+const TemplateClassic = ({ user, primaryColor, accentColor }) => (
   <div className="resume-preview template-classic">
-    <div className="resume-header">
-      <h1 className="resume-name">{user.name || "Your Name"}</h1>
-      <h3 className="resume-title">{user.role || "Professional Title"}</h3>
+    <div className="resume-header" style={{ borderBottomColor: primaryColor }}>
+      <h1 className="resume-name" style={{ color: primaryColor }}>{user.name || "Your Name"}</h1>
+      <h3 className="resume-title" style={{ color: accentColor }}>{user.role || "Professional Title"}</h3>
       <div className="resume-contact">
         {user.email && <span><FiMail size={14} /> {user.email}</span>}
         {user.phone && <span><FiPhone size={14} /> {user.phone}</span>}
@@ -36,17 +42,17 @@ const TemplateClassic = ({ user }) => (
     </div>
 
     <div className="resume-section">
-      <h4 className="section-title">Professional Summary</h4>
+      <h4 className="section-title" style={{ borderLeftColor: primaryColor, color: primaryColor }}>Professional Summary</h4>
       <p className="section-content">{user.about || "Add your professional summary"}</p>
     </div>
 
     <div className="resume-section">
-      <h4 className="section-title">Skills & Expertise</h4>
+      <h4 className="section-title" style={{ borderLeftColor: primaryColor, color: primaryColor }}>Skills & Expertise</h4>
       <p className="section-content">{user.skills || "Add your skills"}</p>
     </div>
 
     <div className="resume-section">
-      <h4 className="section-title">Education</h4>
+      <h4 className="section-title" style={{ borderLeftColor: primaryColor, color: primaryColor }}>Education</h4>
       <div className="education-entry">
         {user.tenthSchool && <p><strong>10th:</strong> {user.tenthSchool}, {user.tenthPercentage}%, {user.tenthYear}</p>}
         {user.interCollege && <p><strong>Intermediate:</strong> {user.interCollege}, {user.interCourse}, {user.interPercentage}%, {user.interYear}</p>}
@@ -55,33 +61,33 @@ const TemplateClassic = ({ user }) => (
     </div>
 
     <div className="resume-section">
-      <h4 className="section-title">Work Experience</h4>
+      <h4 className="section-title" style={{ borderLeftColor: primaryColor, color: primaryColor }}>Work Experience</h4>
       <p className="section-content">{user.experience || "Add your work experience"}</p>
     </div>
 
     <div className="resume-section">
-      <h4 className="section-title">Projects</h4>
+      <h4 className="section-title" style={{ borderLeftColor: primaryColor, color: primaryColor }}>Projects</h4>
       <p className="section-content">{user.projects || "Add your projects"}</p>
     </div>
 
     <div className="resume-section">
-      <h4 className="section-title">Certifications</h4>
+      <h4 className="section-title" style={{ borderLeftColor: primaryColor, color: primaryColor }}>Certifications</h4>
       <p className="section-content">{user.certificates || "Add your certifications"}</p>
     </div>
 
     <div className="resume-section">
-      <h4 className="section-title">Languages</h4>
+      <h4 className="section-title" style={{ borderLeftColor: primaryColor, color: primaryColor }}>Languages</h4>
       <p className="section-content">{user.languages || "Add languages"}</p>
     </div>
   </div>
 );
 
-const TemplateModern = ({ user }) => (
+const TemplateModern = ({ user, primaryColor, accentColor }) => (
   <div className="resume-preview template-modern">
     <div className="modern-two-column">
-      <div className="modern-left">
-        <h1 className="modern-name">{user.name || "Your Name"}</h1>
-        <h3 className="modern-title">{user.role || "Professional Title"}</h3>
+      <div className="modern-left" style={{ background: `${primaryColor}08` }}>
+        <h1 className="modern-name" style={{ color: primaryColor }}>{user.name || "Your Name"}</h1>
+        <h3 className="modern-title" style={{ color: accentColor }}>{user.role || "Professional Title"}</h3>
         <div className="modern-contact">
           {user.email && <p><FiMail size={14} /> {user.email}</p>}
           {user.phone && <p><FiPhone size={14} /> {user.phone}</p>}
@@ -89,35 +95,35 @@ const TemplateModern = ({ user }) => (
           {user.address && <p><FiMapPin size={14} /> {user.address}</p>}
         </div>
         <div className="modern-skills">
-          <h4>Skills</h4>
+          <h4 style={{ color: primaryColor }}>Skills</h4>
           <p>{user.skills || "Add your skills"}</p>
         </div>
         <div className="modern-languages">
-          <h4>Languages</h4>
+          <h4 style={{ color: primaryColor }}>Languages</h4>
           <p>{user.languages || "Add languages"}</p>
         </div>
       </div>
       <div className="modern-right">
         <div className="modern-summary">
-          <h4>Professional Summary</h4>
+          <h4 style={{ borderBottomColor: accentColor, color: primaryColor }}>Professional Summary</h4>
           <p>{user.about || "Add your professional summary"}</p>
         </div>
         <div className="modern-education">
-          <h4>Education</h4>
+          <h4 style={{ borderBottomColor: accentColor, color: primaryColor }}>Education</h4>
           {user.tenthSchool && <p><strong>10th:</strong> {user.tenthSchool}, {user.tenthPercentage}%, {user.tenthYear}</p>}
           {user.interCollege && <p><strong>Intermediate:</strong> {user.interCollege}, {user.interCourse}, {user.interPercentage}%, {user.interYear}</p>}
           {user.degreeCollege && <p><strong>Degree:</strong> {user.degreeCollege}, {user.degreeCourse}, {user.degreePercentage}%, {user.degreeYear}</p>}
         </div>
         <div className="modern-experience">
-          <h4>Work Experience</h4>
+          <h4 style={{ borderBottomColor: accentColor, color: primaryColor }}>Work Experience</h4>
           <p>{user.experience || "Add your work experience"}</p>
         </div>
         <div className="modern-projects">
-          <h4>Projects</h4>
+          <h4 style={{ borderBottomColor: accentColor, color: primaryColor }}>Projects</h4>
           <p>{user.projects || "Add your projects"}</p>
         </div>
         <div className="modern-certificates">
-          <h4>Certifications</h4>
+          <h4 style={{ borderBottomColor: accentColor, color: primaryColor }}>Certifications</h4>
           <p>{user.certificates || "Add your certifications"}</p>
         </div>
       </div>
@@ -125,9 +131,9 @@ const TemplateModern = ({ user }) => (
   </div>
 );
 
-const TemplateElegant = ({ user }) => (
+const TemplateElegant = ({ user, primaryColor, accentColor }) => (
   <div className="resume-preview template-elegant">
-    <div className="elegant-header">
+    <div className="elegant-header" style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 100%)` }}>
       <h1>{user.name || "Your Name"}</h1>
       <h3>{user.role || "Professional Title"}</h3>
       <div className="elegant-contact">
@@ -138,38 +144,38 @@ const TemplateElegant = ({ user }) => (
     </div>
     <div className="elegant-content">
       <div className="elegant-summary">
-        <h4>About Me</h4>
+        <h4 style={{ color: primaryColor }}>About Me</h4>
         <p>{user.about || "Add your professional summary"}</p>
       </div>
       <div className="elegant-skills">
-        <h4>Core Skills</h4>
+        <h4 style={{ color: primaryColor }}>Core Skills</h4>
         <div className="skills-tags">
           {user.skills?.split(',').map((skill, i) => (
-            <span key={i} className="skill-tag">{skill.trim()}</span>
+            <span key={i} className="skill-tag" style={{ background: `${primaryColor}15`, color: primaryColor }}>{skill.trim()}</span>
           ))}
         </div>
       </div>
       <div className="elegant-education">
-        <h4>Education Background</h4>
+        <h4 style={{ color: primaryColor }}>Education Background</h4>
         {user.tenthSchool && <p><strong>Secondary:</strong> {user.tenthSchool} ({user.tenthPercentage}%)</p>}
         {user.interCollege && <p><strong>Higher Secondary:</strong> {user.interCollege}, {user.interCourse}</p>}
         {user.degreeCollege && <p><strong>Graduation:</strong> {user.degreeCollege}, {user.degreeCourse}</p>}
       </div>
       <div className="elegant-experience">
-        <h4>Professional Experience</h4>
+        <h4 style={{ color: primaryColor }}>Professional Experience</h4>
         <p>{user.experience || "Add your work experience"}</p>
       </div>
       <div className="elegant-projects">
-        <h4>Key Projects</h4>
+        <h4 style={{ color: primaryColor }}>Key Projects</h4>
         <p>{user.projects || "Add your projects"}</p>
       </div>
     </div>
   </div>
 );
 
-const TemplateCreative = ({ user }) => (
+const TemplateCreative = ({ user, primaryColor, accentColor }) => (
   <div className="resume-preview template-creative">
-    <div className="creative-sidebar">
+    <div className="creative-sidebar" style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${accentColor} 100%)` }}>
       <div className="creative-avatar">
         <img src={user.profilePhoto || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} alt="avatar" />
       </div>
@@ -181,75 +187,371 @@ const TemplateCreative = ({ user }) => (
         {user.linkedin && <p><FiLinkedin size={14} /> {user.linkedin}</p>}
       </div>
       <div className="creative-skills">
-        <h4>Skills</h4>
+        <h4 style={{ color: accentColor }}>Skills</h4>
         <p>{user.skills || "Add your skills"}</p>
       </div>
       <div className="creative-languages">
-        <h4>Languages</h4>
+        <h4 style={{ color: accentColor }}>Languages</h4>
         <p>{user.languages || "Add languages"}</p>
       </div>
     </div>
     <div className="creative-main">
       <div className="creative-summary">
-        <h3>About Me</h3>
+        <h3 style={{ borderLeftColor: primaryColor, color: primaryColor }}>About Me</h3>
         <p>{user.about || "Add your professional summary"}</p>
       </div>
       <div className="creative-education">
-        <h3>Education</h3>
+        <h3 style={{ borderLeftColor: primaryColor, color: primaryColor }}>Education</h3>
         {user.tenthSchool && <p>✓ {user.tenthSchool} - {user.tenthPercentage}% ({user.tenthYear})</p>}
         {user.interCollege && <p>✓ {user.interCollege}, {user.interCourse} - {user.interPercentage}% ({user.interYear})</p>}
         {user.degreeCollege && <p>✓ {user.degreeCollege}, {user.degreeCourse} - {user.degreePercentage}% ({user.degreeYear})</p>}
       </div>
       <div className="creative-experience">
-        <h3>Experience</h3>
+        <h3 style={{ borderLeftColor: primaryColor, color: primaryColor }}>Experience</h3>
         <p>{user.experience || "Add your work experience"}</p>
       </div>
       <div className="creative-projects">
-        <h3>Projects</h3>
+        <h3 style={{ borderLeftColor: primaryColor, color: primaryColor }}>Projects</h3>
         <p>{user.projects || "Add your projects"}</p>
       </div>
     </div>
   </div>
 );
 
-const TemplateExecutive = ({ user }) => (
-  <div className="resume-preview template-executive">
-    <div className="executive-header">
-      <div className="executive-name">
-        <h1>{user.name || "Your Name"}</h1>
-        <h3>{user.role || "Professional Title"}</h3>
+// Template 5 - PRESTIGE (Modern Executive Layout with Timeline)
+const TemplatePrestige = ({ user, primaryColor, accentColor }) => (
+  <div className="resume-preview template-prestige">
+    <div className="prestige-container">
+      <div className="prestige-header">
+        <div className="prestige-name-title">
+          <h1 className="prestige-name" style={{ color: primaryColor }}>{user.name || "Your Name"}</h1>
+          <div className="prestige-role" style={{ backgroundColor: `${primaryColor}10`, color: primaryColor }}>
+            {user.role || "Professional Title"}
+          </div>
+        </div>
+        <div className="prestige-quick-info">
+          {user.email && <div><FiMail size={13} /> {user.email}</div>}
+          {user.phone && <div><FiPhone size={13} /> {user.phone}</div>}
+          {user.linkedin && <div><FiLinkedin size={13} /> {user.linkedin}</div>}
+          {user.address && <div><FiMapPin size={13} /> {user.address}</div>}
+        </div>
       </div>
-      <div className="executive-contact">
-        {user.email && <div><FiMail size={14} /> {user.email}</div>}
-        {user.phone && <div><FiPhone size={14} /> {user.phone}</div>}
-        {user.linkedin && <div><FiLinkedin size={14} /> {user.linkedin}</div>}
-      </div>
-    </div>
-    <div className="executive-body">
-      <div className="executive-summary">
-        <h4>Executive Summary</h4>
+
+      <div className="prestige-summary">
         <p>{user.about || "Add your professional summary"}</p>
       </div>
-      <div className="executive-grid">
-        <div className="executive-left">
-          <h4>Core Competencies</h4>
-          <p>{user.skills || "Add your skills"}</p>
-          <h4>Languages</h4>
+
+      <div className="prestige-main">
+        <div className="prestige-left">
+          <div className="prestige-section">
+            <h3 style={{ color: primaryColor }}>
+              <FiCpu size={16} /> Core Competencies
+            </h3>
+            <div className="prestige-skills">
+              {user.skills ? user.skills.split(',').map((skill, idx) => (
+                <div key={idx} className="prestige-skill">{skill.trim()}</div>
+              )) : <div>Add your skills</div>}
+            </div>
+          </div>
+
+          <div className="prestige-section">
+            <h3 style={{ color: primaryColor }}>
+              <FiGlobe size={16} /> Languages
+            </h3>
+            <p>{user.languages || "Add languages"}</p>
+          </div>
+
+          <div className="prestige-section">
+            <h3 style={{ color: primaryColor }}>
+              <FiAward size={16} /> Certifications
+            </h3>
+            <p>{user.certificates || "Add certifications"}</p>
+          </div>
+        </div>
+
+        <div className="prestige-right">
+          <div className="prestige-section">
+            <h3 style={{ color: primaryColor }}>
+              <FiBriefcase size={16} /> Professional Experience
+            </h3>
+            <div className="prestige-experience">
+              {user.experience ? user.experience.split('\n').map((exp, idx) => (
+                <div key={idx} className="prestige-exp-item">
+                  <div className="prestige-exp-dot" style={{ backgroundColor: primaryColor }}></div>
+                  <p>{exp}</p>
+                </div>
+              )) : <p>Add your work experience</p>}
+            </div>
+          </div>
+
+          <div className="prestige-section">
+            <h3 style={{ color: primaryColor }}>
+              <FiStar size={16} /> Featured Projects
+            </h3>
+            <div className="prestige-projects">
+              {user.projects ? user.projects.split('\n').map((project, idx) => (
+                <div key={idx} className="prestige-project-item">
+                  <div className="prestige-project-bullet" style={{ backgroundColor: accentColor }}></div>
+                  <p>{project}</p>
+                </div>
+              )) : <p>Add your projects</p>}
+            </div>
+          </div>
+
+          <div className="prestige-section">
+            <h3 style={{ color: primaryColor }}>
+              <FiBookOpen size={16} /> Education
+            </h3>
+            {user.degreeCollege && (
+              <div className="prestige-edu">
+                <div className="prestige-edu-degree">{user.degreeCourse}</div>
+                <div className="prestige-edu-school">{user.degreeCollege}</div>
+                <div className="prestige-edu-year">{user.degreeYear} | {user.degreePercentage}%</div>
+              </div>
+            )}
+            {user.interCollege && (
+              <div className="prestige-edu">
+                <div className="prestige-edu-degree">{user.interCourse}</div>
+                <div className="prestige-edu-school">{user.interCollege}</div>
+                <div className="prestige-edu-year">{user.interYear} | {user.interPercentage}%</div>
+              </div>
+            )}
+            {user.tenthSchool && (
+              <div className="prestige-edu">
+                <div className="prestige-edu-degree">Secondary Education</div>
+                <div className="prestige-edu-school">{user.tenthSchool}</div>
+                <div className="prestige-edu-year">{user.tenthYear} | {user.tenthPercentage}%</div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Template 6 - FINANCIAL ANALYST STYLE (Clean Professional with Education First)
+const TemplateFinancial = ({ user, primaryColor, accentColor }) => (
+  <div className="resume-preview template-financial">
+    <div className="financial-container">
+      <div className="financial-header">
+        <h1 className="financial-name" style={{ color: primaryColor }}>{user.name?.toUpperCase() || "YOUR NAME"}</h1>
+        <h3 className="financial-title" style={{ color: accentColor }}>{user.role?.toUpperCase() || "PROFESSIONAL TITLE"}</h3>
+      </div>
+
+      <div className="financial-content">
+        <div className="financial-section">
+          <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Education:</h3>
+          <div className="financial-education">
+            {user.degreeCollege && (
+              <p><strong>• {user.degreeCourse}</strong>, {user.degreeCollege} ({user.degreeYear})</p>
+            )}
+            {user.interCollege && (
+              <p><strong>• {user.interCourse}</strong>, {user.interCollege} ({user.interYear})</p>
+            )}
+            {user.tenthSchool && (
+              <p><strong>• Secondary Education</strong>, {user.tenthSchool} ({user.tenthYear})</p>
+            )}
+            {user.certificates && (
+              <p><strong>• {user.certificates}</strong></p>
+            )}
+          </div>
+        </div>
+
+        <div className="financial-section">
+          <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Professional Experience:</h3>
+          <div className="financial-experience">
+            {user.experience ? user.experience.split('\n').map((exp, idx) => (
+              <p key={idx}>{exp}</p>
+            )) : <p>Add your work experience</p>}
+          </div>
+        </div>
+
+        <div className="financial-section">
+          <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Skills:</h3>
+          <div className="financial-skills">
+            <p>{user.skills || "Add your skills"}</p>
+          </div>
+        </div>
+
+        <div className="financial-section">
+          <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Certifications:</h3>
+          <p>{user.certificates || "Add your certifications"}</p>
+        </div>
+
+        <div className="financial-section">
+          <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Publications:</h3>
+          <p>{user.projects || "Add your publications or projects"}</p>
+        </div>
+
+        <div className="financial-section">
+          <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Languages:</h3>
           <p>{user.languages || "Add languages"}</p>
         </div>
-        <div className="executive-right">
-          <h4>Education</h4>
-          {user.degreeCollege && <p><strong>{user.degreeCourse}</strong><br/>{user.degreeCollege}, {user.degreePercentage}%</p>}
-          {user.interCollege && <p><strong>{user.interCourse}</strong><br/>{user.interCollege}, {user.interPercentage}%</p>}
+      </div>
+    </div>
+  </div>
+);
+
+// Template 7 - FULL STACK DEVELOPER STYLE (Tech-focused with Contact Bar)
+const TemplateTechStack = ({ user, primaryColor, accentColor }) => (
+  <div className="resume-preview template-techstack">
+    <div className="techstack-container">
+      <div className="techstack-header">
+        <h1 className="techstack-name" style={{ color: primaryColor }}>{user.name?.toUpperCase() || "YOUR NAME"}</h1>
+        <h3 className="techstack-title" style={{ color: accentColor }}>{user.role || "Professional Title"}</h3>
+        <div className="techstack-contact">
+          {user.phone && <span>{user.phone}</span>}
+          {user.email && <span>• {user.email}</span>}
+          {user.linkedin && <span>• {user.linkedin}</span>}
+          {user.address && <span>• {user.address}</span>}
         </div>
       </div>
-      <div className="executive-experience">
-        <h4>Professional Experience</h4>
-        <p>{user.experience || "Add your work experience"}</p>
+
+      <div className="techstack-summary">
+        <p>{user.about || "Add your professional summary"}</p>
       </div>
-      <div className="executive-projects">
-        <h4>Notable Projects</h4>
-        <p>{user.projects || "Add your projects"}</p>
+
+      <div className="techstack-experience">
+        <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Experience</h3>
+        {user.experience ? user.experience.split('\n').map((exp, idx) => {
+          if (exp.includes(' - ')) {
+            const parts = exp.split(' - ');
+            return (
+              <div key={idx} className="techstack-exp-item">
+                <div className="techstack-exp-header">
+                  <strong>{parts[0]}</strong>
+                  <span className="techstack-exp-date">{parts[1]}</span>
+                </div>
+                <p>{exp.replace(parts[0] + ' - ', '').replace(parts[1], '')}</p>
+              </div>
+            );
+          }
+          return <p key={idx}>{exp}</p>;
+        }) : <p>Add your work experience</p>}
+      </div>
+
+      <div className="techstack-education">
+        <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Education</h3>
+        {user.degreeCollege && (
+          <div className="techstack-edu-item">
+            <strong>{user.degreeCollege}</strong>
+            <div>{user.degreeCourse}</div>
+            <div className="techstack-edu-date">{user.degreeYear}</div>
+          </div>
+        )}
+        {user.interCollege && (
+          <div className="techstack-edu-item">
+            <strong>{user.interCollege}</strong>
+            <div>{user.interCourse}</div>
+            <div className="techstack-edu-date">{user.interYear}</div>
+          </div>
+        )}
+      </div>
+
+      <div className="techstack-skills">
+        <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>Skills</h3>
+        <div className="techstack-skills-grid">
+          {user.skills ? user.skills.split(',').map((skill, idx) => (
+            <span key={idx} className="techstack-skill">{skill.trim()}</span>
+          )) : <span>Add your skills</span>}
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Template 8 - EDUCATOR STYLE (Curriculum/Teaching Focused with Achievements)
+const TemplateEducator = ({ user, primaryColor, accentColor }) => (
+  <div className="resume-preview template-educator">
+    <div className="educator-container">
+      <div className="educator-sidebar" style={{ backgroundColor: `${primaryColor}05` }}>
+        <div className="educator-summary">
+          <h3 style={{ color: primaryColor }}>SUMMARY</h3>
+          <p>{user.about || "Add your professional summary"}</p>
+        </div>
+
+        <div className="educator-education">
+          <h3 style={{ color: primaryColor }}>EDUCATION</h3>
+          {user.degreeCollege && (
+            <div className="educator-edu-item">
+              <strong>{user.degreeCourse}</strong>
+              <div>{user.degreeCollege}</div>
+              <div className="educator-edu-date">{user.degreeYear}</div>
+            </div>
+          )}
+          {user.interCollege && (
+            <div className="educator-edu-item">
+              <strong>{user.interCourse}</strong>
+              <div>{user.interCollege}</div>
+              <div className="educator-edu-date">{user.interYear}</div>
+            </div>
+          )}
+        </div>
+
+        <div className="educator-skills">
+          <h3 style={{ color: primaryColor }}>SKILLS</h3>
+          <div className="educator-skills-list">
+            {user.skills ? user.skills.split(',').map((skill, idx) => (
+              <span key={idx} className="educator-skill">{skill.trim()}</span>
+            )) : <span>Add your skills</span>}
+          </div>
+        </div>
+
+        <div className="educator-languages">
+          <h3 style={{ color: primaryColor }}>LANGUAGES</h3>
+          <p>{user.languages || "Add languages"}</p>
+        </div>
+
+        <div className="educator-courses">
+          <h3 style={{ color: primaryColor }}>COURSES</h3>
+          <p>{user.certificates || "Add certifications and courses"}</p>
+        </div>
+
+        <div className="educator-passions">
+          <h3 style={{ color: primaryColor }}>PASSIONS</h3>
+          <p>• Continuous Professional Development</p>
+          <p>• Educational Technology</p>
+          <p>• Student Mentorship</p>
+        </div>
+      </div>
+
+      <div className="educator-main">
+        <div className="educator-header">
+          <h1 className="educator-name" style={{ color: primaryColor }}>{user.name?.toUpperCase() || "YOUR NAME"}</h1>
+          <h3 className="educator-title">{user.role || "Professional Title"}</h3>
+        </div>
+
+        <div className="educator-experience">
+          <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>EXPERIENCE</h3>
+          {user.experience ? user.experience.split('\n').map((exp, idx) => {
+            if (exp.includes(' - ')) {
+              const parts = exp.split(' - ');
+              return (
+                <div key={idx} className="educator-exp-item">
+                  <div className="educator-exp-header">
+                    <strong>{parts[0]}</strong>
+                    <span className="educator-exp-date">{parts[1]}</span>
+                  </div>
+                  <p>{exp.replace(parts[0] + ' - ', '').replace(parts[1], '')}</p>
+                </div>
+              );
+            }
+            return <p key={idx}>{exp}</p>;
+          }) : <p>Add your work experience</p>}
+        </div>
+
+        <div className="educator-achievements">
+          <h3 style={{ color: primaryColor, borderBottomColor: primaryColor }}>KEY ACHIEVEMENTS</h3>
+          <div className="educator-achievements-list">
+            {user.projects ? user.projects.split('\n').map((achievement, idx) => (
+              <div key={idx} className="educator-achievement-item">
+                <div className="educator-achievement-title">{achievement.split(':')[0]}</div>
+                <p>{achievement}</p>
+              </div>
+            )) : <p>Add your key achievements</p>}
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -288,7 +590,24 @@ function CreateResume() {
   const [isSaving, setIsSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [primaryColor, setPrimaryColor] = useState("#2563eb");
+  const [accentColor, setAccentColor] = useState("#7c3aed");
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const resumeRef = useRef();
+
+  // Color presets
+  const colorPresets = [
+    { name: "Blue", primary: "#2563eb", accent: "#3b82f6" },
+    { name: "Green", primary: "#059669", accent: "#10b981" },
+    { name: "Purple", primary: "#7c3aed", accent: "#a855f7" },
+    { name: "Red", primary: "#dc2626", accent: "#ef4444" },
+    { name: "Orange", primary: "#ea580c", accent: "#f97316" },
+    { name: "Teal", primary: "#0d9488", accent: "#14b8a6" },
+    { name: "Indigo", primary: "#4f46e5", accent: "#6366f1" },
+    { name: "Rose", primary: "#e11d48", accent: "#f43f5e" },
+    { name: "Cyan", primary: "#0891b2", accent: "#06b6d4" },
+    { name: "Emerald", primary: "#047857", accent: "#10b981" }
+  ];
 
   // Template mapping
   const templateComponents = {
@@ -296,7 +615,10 @@ function CreateResume() {
     t2: TemplateModern,
     t3: TemplateElegant,
     t4: TemplateCreative,
-    t5: TemplateExecutive
+    t5: TemplatePrestige,
+    t6: TemplateFinancial,
+    t7: TemplateTechStack,
+    t8: TemplateEducator
   };
 
   const templates = [
@@ -304,7 +626,10 @@ function CreateResume() {
     { id: "t2", name: "Modern", icon: FiGrid, color: "#06d6a0", description: "Two-column modern design" },
     { id: "t3", name: "Elegant", icon: FiEye, color: "#f9c74f", description: "Clean and minimalistic" },
     { id: "t4", name: "Creative", icon: FiUser, color: "#f9844a", description: "Sidebar with profile photo" },
-    { id: "t5", name: "Executive", icon: FiBriefcase, color: "#9c89b8", description: "Bold and professional" }
+    { id: "t5", name: "Prestige", icon: FiTrendingUp, color: "#9c89b8", description: "Modern executive with timeline" },
+    { id: "t6", name: "Financial Pro", icon: FiBriefcase, color: "#48bb78", description: "Clean financial/accounting style" },
+    { id: "t7", name: "TechStack", icon: FiCode, color: "#e53e3e", description: "Developer-focused layout" },
+    { id: "t8", name: "Educator", icon: FiBookOpen, color: "#ed64a6", description: "Teaching & education style" }
   ];
 
   useEffect(() => {
@@ -331,6 +656,11 @@ function CreateResume() {
 
   const handleTemplateSelect = (template) => {
     setSelectedTemplate(template);
+  };
+
+  const applyColorPreset = (primary, accent) => {
+    setPrimaryColor(primary);
+    setAccentColor(accent);
   };
 
   const exportPDF = async () => {
@@ -379,12 +709,13 @@ function CreateResume() {
       const resumeData = {
         ...user,
         selectedTemplate,
+        colorSettings: { primaryColor, accentColor },
         lastModified: new Date().toISOString()
       };
 
       const response = await axios.post(
         "http://localhost:5000/api/resume/save",
-        { resumeData, template: selectedTemplate },
+        { resumeData, template: selectedTemplate, colorSettings: { primaryColor, accentColor } },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -412,7 +743,7 @@ function CreateResume() {
           <div className="header-content">
             <h1>Create Your Resume</h1>
             <div className="header-description">
-              <p>Choose a template and generate a professional resume instantly</p>
+              <p>Choose a template and customize colors to match your style</p>
             </div>
           </div>
         </div>
@@ -448,6 +779,60 @@ function CreateResume() {
           </div>
         </div>
 
+        {/* Color Customization */}
+        <div className="color-customizer">
+          <button 
+            className="color-toggle-btn"
+            onClick={() => setShowColorPicker(!showColorPicker)}
+            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}
+          >
+            <FiDroplet size={20} />
+            Customize Colors
+          </button>
+          
+          {showColorPicker && (
+            <div className="color-picker-panel">
+              <div className="color-presets">
+                <h4>Color Presets</h4>
+                <div className="preset-grid">
+                  {colorPresets.map((preset, index) => (
+                    <button
+                      key={index}
+                      className="preset-btn"
+                      onClick={() => applyColorPreset(preset.primary, preset.accent)}
+                      style={{ background: `linear-gradient(135deg, ${preset.primary}, ${preset.accent})` }}
+                      title={preset.name}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <div className="custom-colors">
+                <div className="color-input-group">
+                  <label>Primary Color</label>
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="color-input"
+                  />
+                  <span className="color-value">{primaryColor}</span>
+                </div>
+                <div className="color-input-group">
+                  <label>Accent Color</label>
+                  <input
+                    type="color"
+                    value={accentColor}
+                    onChange={(e) => setAccentColor(e.target.value)}
+                    className="color-input"
+                  />
+                  <span className="color-value">{accentColor}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Preview Toggle */}
         <div className="preview-toggle">
           <button 
@@ -472,7 +857,7 @@ function CreateResume() {
         {showPreview && (
           <div className="resume-preview-area">
             <div className="preview-content" ref={resumeRef}>
-              <CurrentTemplate user={user} />
+              <CurrentTemplate user={user} primaryColor={primaryColor} accentColor={accentColor} />
             </div>
           </div>
         )}

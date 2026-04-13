@@ -5,7 +5,8 @@ import LandingPage from "./components/LandingPage/LandingPage";
 import Login from "./pages/Login";
 import Signup from "./pages/signup";
 import Dashboard from "./pages/Dashboard";
-import Profile from "./pages/Profile"; // 
+import Profile from "./pages/Profile";
+import PublicPortfolio from "./pages/PublicPortfolio"; // Add this import
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -39,6 +40,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* PUBLIC PORTFOLIO ROUTE - No authentication required */}
+        <Route path="/portfolio/share/:id" element={<PublicPortfolio />} />
 
       </Routes>
     </BrowserRouter>

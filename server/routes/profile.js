@@ -52,4 +52,45 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
+// @route   GET /api/profile/public/:id
+// @desc    Get public profile by ID or encoded email (no authentication required)
+// @access  Public
+router.get("/public/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    let query = {};
+    
+    // Check if id is a valid MongoDB ObjectId (24 characters hex)
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      // If it's a valid ObjectId, search by userId
+      query = { userId: id };
+    } else {
+      // Otherwise, try to decode as base64 email
+      try {
+        // Decode email from base64
+        const email = Buffer.from(id, 'base64').toString();
+        query = { email: email };
+      } catch (decodeError) {
+        console.error("Base64 decode error:", decodeError);
+        return res.status(404).json({ success: false, message: "Profile not found" });
+      }
+    }
+    
+    const profile = await Profile.findOne(query);
+    
+    if (!profile) {
+      return res.status(404).json({ success: false, message: "Profile not found" });
+    }
+    
+    // Remove sensitive data if any
+    const publicProfile = profile.toObject();
+    delete publicProfile.__v;
+    
+    res.json({ success: true, profile: publicProfile });
+  } catch (error) {
+    console.error("Error fetching public profile:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 module.exports = router;

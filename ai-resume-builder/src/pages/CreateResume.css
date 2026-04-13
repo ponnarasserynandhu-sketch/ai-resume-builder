@@ -1,4 +1,3 @@
-
 /* Container Styles */
 .create-resume-container {
   min-height: 100vh;
@@ -111,6 +110,137 @@
   top: 10px;
   right: 10px;
   color: #10b981;
+}
+
+/* Color Customizer Styles */
+.color-customizer {
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.color-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.color-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.color-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 15px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.color-presets {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.preset-color {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.preset-color:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.preset-color.active {
+  border-color: #1f2937;
+  transform: scale(1.05);
+}
+
+.color-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.color-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.color-control label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.color-control input[type="color"] {
+  width: 60px;
+  height: 40px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+}
+
+.color-control input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e5e7eb;
+  outline: none;
+  cursor: pointer;
+}
+
+.color-control input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.color-control input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.color-value {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-family: monospace;
 }
 
 /* Preview Toggle Buttons */
@@ -577,7 +707,6 @@
   color: #1f2937;
 }
 
-
 /* Base download button styling */
 .download-resume-btn {
   display: inline-flex;
@@ -730,7 +859,6 @@
   }
 }
 
-
 @keyframes successFlash {
   0% {
     transform: scale(1);
@@ -842,6 +970,15 @@
   .create-resume-wrapper {
     padding-bottom: 120px;
   }
+
+  .color-controls {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .color-presets {
+    justify-content: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -896,6 +1033,11 @@
     width: 16px;
     height: 16px;
   }
+
+  .preset-color {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 /* Touch Device Optimizations */
@@ -925,7 +1067,8 @@
   .bottom-actions,
   .export-btn-modern,
   .save-resume-btn,
-  .download-resume-btn {
+  .download-resume-btn,
+  .color-customizer {
     display: none !important;
   }
   
@@ -974,7 +1117,10 @@
   .save-resume-btn *,
   .template-card,
   .toggle-btn,
-  .data-card {
+  .data-card,
+  .color-toggle-btn,
+  .preset-color,
+  .color-panel {
     transition: none !important;
     animation: none !important;
   }
@@ -1003,4 +1149,341 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #764ba2;
+}
+/* Template 6 - Financial Pro Styles */
+.template-financial {
+  background: white;
+  font-family: 'Georgia', 'Times New Roman', Times, serif;
+}
+
+.financial-container {
+  padding: 40px;
+  max-width: 100%;
+}
+
+.financial-header {
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 15px;
+}
+
+.financial-name {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.financial-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.financial-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.financial-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  border-bottom: 2px solid;
+  padding-bottom: 5px;
+  display: inline-block;
+}
+
+.financial-section p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+  margin: 8px 0;
+}
+
+.financial-education p {
+  margin: 6px 0;
+}
+
+.financial-experience p {
+  margin: 10px 0;
+}
+
+/* Template 7 - TechStack Styles */
+.template-techstack {
+  background: white;
+  font-family: 'Courier New', 'SF Mono', monospace;
+}
+
+.techstack-container {
+  padding: 35px;
+}
+
+.techstack-header {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.techstack-name {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.5px;
+}
+
+.techstack-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 10px 0;
+}
+
+.techstack-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  font-size: 11px;
+  color: #666;
+}
+
+.techstack-summary {
+  background: #f8f9fa;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #444;
+}
+
+.techstack-experience h3,
+.techstack-education h3,
+.techstack-skills h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 15px 0;
+  border-bottom: 2px solid;
+  padding-bottom: 5px;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.techstack-exp-item {
+  margin-bottom: 20px;
+}
+
+.techstack-exp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.techstack-exp-header strong {
+  font-size: 14px;
+  color: #222;
+}
+
+.techstack-exp-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.techstack-exp-item p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #555;
+  margin: 5px 0 0 0;
+}
+
+.techstack-edu-item {
+  margin-bottom: 15px;
+}
+
+.techstack-edu-item strong {
+  font-size: 13px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.techstack-edu-date {
+  font-size: 11px;
+  color: #888;
+  margin-top: 3px;
+}
+
+.techstack-skills-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.techstack-skill {
+  background: #f0f0f0;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Template 8 - Educator Styles */
+.template-educator {
+  background: white;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+.educator-container {
+  display: flex;
+  min-height: 100%;
+}
+
+.educator-sidebar {
+  width: 30%;
+  padding: 30px 20px;
+}
+
+.educator-main {
+  width: 70%;
+  padding: 30px 25px;
+}
+
+.educator-header {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.educator-name {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.educator-title {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.educator-sidebar h3 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  letter-spacing: 1px;
+}
+
+.educator-summary p,
+.educator-sidebar p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #555;
+}
+
+.educator-edu-item,
+.educator-sidebar .educator-edu-item {
+  margin-bottom: 15px;
+}
+
+.educator-edu-item strong {
+  font-size: 12px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.educator-edu-date {
+  font-size: 10px;
+  color: #888;
+  margin-top: 3px;
+}
+
+.educator-skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.educator-skill {
+  background: #f0f0f0;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 11px;
+}
+
+.educator-main h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 15px 0;
+  border-bottom: 2px solid;
+  padding-bottom: 5px;
+  display: inline-block;
+  letter-spacing: 1px;
+}
+
+.educator-exp-item {
+  margin-bottom: 20px;
+}
+
+.educator-exp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.educator-exp-header strong {
+  font-size: 13px;
+  color: #222;
+}
+
+.educator-exp-date {
+  font-size: 11px;
+  color: #888;
+}
+
+.educator-exp-item p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #555;
+  margin: 5px 0 0 0;
+}
+
+.educator-achievement-item {
+  margin-bottom: 15px;
+}
+
+.educator-achievement-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.educator-achievement-item p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #555;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .educator-container {
+    flex-direction: column;
+  }
+  
+  .educator-sidebar,
+  .educator-main {
+    width: 100%;
+  }
+  
+  .techstack-exp-header {
+    flex-direction: column;
+    gap: 5px;
+  }
 }
