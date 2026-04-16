@@ -20,6 +20,8 @@ app.use("/api/resume", require("./routes/resume"));
 app.use("/api/dashboard", require("./routes/dashboard"));
 app.use("/api/user", require("./routes/user"));
 app.use("/api/ai", require("./routes/ai"));
+app.use("/api/admin", require("./routes/admin")); // ← ADD THIS LINE for admin routes
+
 // DB CONNECT
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected "))

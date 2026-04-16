@@ -36,7 +36,19 @@ const ProfileSchema = new mongoose.Schema({
   degreeYear: String,
 
   profilePhoto: String,
-  portfolioUrl: String
+  portfolioUrl: String,
+  
+  // ✅ ADD THIS FIELD - Track if user has created a portfolio
+  hasPortfolio: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Optional: Track when portfolio was created
+  portfolioCreatedAt: {
+    type: Date,
+    default: null
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Profile", ProfileSchema);
