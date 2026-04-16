@@ -13,7 +13,8 @@ import {
   FiFileText,
   FiSettings,
   FiHelpCircle,
-  FiGrid
+  FiGrid,
+  FiShield
 } from "react-icons/fi";
 
 function Navbar() {
@@ -23,6 +24,7 @@ function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [userRole, setUserRole] = useState("");
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,6 +35,7 @@ function Navbar() {
   const checkAuthStatus = () => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
+    const role = localStorage.getItem("userRole");
     
     if (token && userStr) {
       try {
@@ -40,16 +43,19 @@ function Navbar() {
         setIsLoggedIn(true);
         setUserName(userObj.name || userObj.email?.split('@')[0] || "User");
         setUserEmail(userObj.email || "");
+        setUserRole(role || userObj.role || "user");
       } catch (error) {
         console.error("Error parsing user data:", error);
         setIsLoggedIn(false);
         setUserName("");
         setUserEmail("");
+        setUserRole("");
       }
     } else {
       setIsLoggedIn(false);
       setUserName("");
       setUserEmail("");
+      setUserRole("");
     }
   };
 
@@ -57,7 +63,7 @@ function Navbar() {
     checkAuthStatus();
 
     const handleStorageChange = (e) => {
-      if (e.key === "token" || e.key === "user") {
+      if (e.key === "token" || e.key === "user" || e.key === "userRole") {
         checkAuthStatus();
       }
     };
@@ -99,10 +105,12 @@ function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
     setIsLoggedIn(false);
     setIsDropdownOpen(false);
     setUserName("");
     setUserEmail("");
+    setUserRole("");
     navigate("/");
     if (isMenuOpen) {
       closeMenu();
@@ -166,8 +174,7 @@ function Navbar() {
             </div>
             <div className="logo-text-container">
               <span className="logo-text">AI Resume</span>
-              <span className="logo-subtext">Builder
-              </span>
+              <span className="logo-subtext">Builder</span>
             </div>
           </div>
         </Link>
@@ -205,6 +212,19 @@ function Navbar() {
               </li>
             );
           })}
+          
+          {/* Admin Dashboard Link - Only visible to admin users */}
+          {isLoggedIn && userRole === "admin" && (
+            <li>
+              <Link 
+                to="/admin-dashboard" 
+                className={`nav-link ${location.pathname === "/admin-dashboard" ? "active" : ""}`}
+              >
+                <FiShield size={18} />
+                <span>Admin Panel</span>
+              </Link>
+            </li>
+          )}
         </ul>
 
         {/* Right Section */}
@@ -233,6 +253,9 @@ function Navbar() {
                     <div className="dropdown-user-info">
                       <p className="dropdown-user-name">{userName}</p>
                       <p className="dropdown-user-email">{userEmail}</p>
+                      {userRole === "admin" && (
+                        <span className="admin-badge">Administrator</span>
+                      )}
                     </div>
                   </div>
                   <div className="dropdown-divider"></div>
@@ -254,6 +277,20 @@ function Navbar() {
                     <FiGrid size={18} />
                     <span>Dashboard</span>
                   </Link>
+                  
+                  {/* Admin Dashboard Link in Dropdown */}
+                  {userRole === "admin" && (
+                    <Link 
+                      to="/admin-dashboard" 
+                      className="dropdown-item admin-dropdown-item" 
+                      onClick={() => setIsDropdownOpen(false)}
+                      role="menuitem"
+                    >
+                      <FiShield size={18} />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+                  
                   <Link 
                     to="/settings" 
                     className="dropdown-item" 
@@ -335,8 +372,8 @@ function Navbar() {
                 </svg>
               </div>
               <div className="logo-text-container">
-                <span className="logo-text">ResumeAI</span>
-                <span className="logo-subtext">Creator</span>
+                <span className="logo-text">AI Resume</span>
+                <span className="logo-subtext">Builder</span>
               </div>
             </Link>
             <button className="close-menu-btn" onClick={closeMenu} aria-label="Close menu">
@@ -380,7 +417,20 @@ function Navbar() {
               );
             })}
             
-           
+            {/* Admin Dashboard Link in Mobile Menu */}
+            {isLoggedIn && userRole === "admin" && (
+              <li>
+                <Link 
+                  to="/admin-dashboard" 
+                  className="mobile-nav-link admin-mobile-link"
+                  onClick={closeMenu}
+                >
+                  <FiShield size={20} />
+                  <span>Admin Dashboard</span>
+                </Link>
+              </li>
+            )}
+            
             {isLoggedIn && (
               <>
                 <li>
@@ -415,6 +465,9 @@ function Navbar() {
                   <div>
                     <p className="mobile-user-name">{userName}</p>
                     <p className="mobile-user-email">{userEmail}</p>
+                    {userRole === "admin" && (
+                      <span className="mobile-admin-badge">Administrator</span>
+                    )}
                   </div>
                 </div>
                 <button className="mobile-logout-btn" onClick={handleLogout}>

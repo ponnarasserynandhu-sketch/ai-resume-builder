@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "./Login.css";
-import { FiMail, FiLock, FiArrowRight, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiMail, FiLock, FiArrowRight, FiEye, FiEyeOff, FiShield } from "react-icons/fi";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -11,6 +11,7 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -21,11 +22,21 @@ function Login() {
       const res = await axios.post("http://localhost:5000/api/auth/login", {
         email,
         password
+        // ❌ Removed adminSecret - not needed for role-based authentication
       });
 
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
-        window.location.href = "/dashboard";
+        localStorage.setItem("userRole", res.data.user.role);
+        localStorage.setItem("userName", res.data.user.name);
+        localStorage.setItem("userEmail", res.data.user.email);
+        
+        // Redirect based on user role
+        if (res.data.user.role === "admin") {
+          window.location.href = "/admin-dashboard";
+        } else {
+          window.location.href = "/dashboard";
+        }
       } else {
         setError(res.data.message || "Login failed");
       }
@@ -99,8 +110,34 @@ function Login() {
       <div className="login-form-container">
         <div className="form-wrapper">
           <div className="form-header">
-            <h2>Sign In</h2>
-            <p>Welcome back! Please enter your credentials</p>
+            <h2>{showAdminLogin ? "Admin Sign In" : "Sign In"}</h2>
+            <p>
+              {showAdminLogin 
+                ? "Admin access only. Please enter your admin credentials." 
+                : "Welcome back! Please enter your credentials"}
+            </p>
+          </div>
+
+          {/* Toggle between User Login and Admin Login */}
+          <div className="login-type-toggle">
+            <button 
+              className={`toggle-btn ${!showAdminLogin ? 'active' : ''}`}
+              onClick={() => {
+                setShowAdminLogin(false);
+                setError("");
+              }}
+            >
+              User Login
+            </button>
+            <button 
+              className={`toggle-btn ${showAdminLogin ? 'active' : ''}`}
+              onClick={() => {
+                setShowAdminLogin(true);
+                setError("");
+              }}
+            >
+              <FiShield /> Admin Login
+            </button>
           </div>
 
           <form onSubmit={handleLogin} className="login-form">
@@ -149,19 +186,23 @@ function Login() {
               </div>
             </div>
 
+            {/* ❌ REMOVED: Admin Secret Key field - Not needed for role-based authentication */}
+
             {error && (
               <div className="error-message">
                 {error}
               </div>
             )}
 
-            <div className="form-options">
-              <label className="checkbox-label">
-                <input type="checkbox" />
-                <span>Remember me</span>
-              </label>
-              <a href="/forgot-password" className="forgot-link">Forgot password?</a>
-            </div>
+            {!showAdminLogin && (
+              <div className="form-options">
+                <label className="checkbox-label">
+                  <input type="checkbox" />
+                  <span>Remember me</span>
+                </label>
+                <a href="/forgot-password" className="forgot-link">Forgot password?</a>
+              </div>
+            )}
 
             <button type="submit" className="submit-btn" disabled={loading}>
               {loading ? (
@@ -171,16 +212,28 @@ function Login() {
                 </>
               ) : (
                 <>
-                  Sign In
+                  {showAdminLogin ? "Admin Sign In" : "Sign In"}
                   <FiArrowRight size={18} />
                 </>
               )}
             </button>
 
-            <div className="login-link">
-              <p>Don't have an account? <a href="/signup">Create account</a></p>
-            </div>
+            {!showAdminLogin && (
+              <div className="login-link">
+                <p>Don't have an account? <a href="/signup">Create account</a></p>
+              </div>
+            )}
           </form>
+
+          {/* Admin Info Message */}
+          {showAdminLogin && (
+            <div className="admin-info">
+              <p>
+                <FiShield size={14} />
+                Admin credentials: admin@example.com / Admin@123
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

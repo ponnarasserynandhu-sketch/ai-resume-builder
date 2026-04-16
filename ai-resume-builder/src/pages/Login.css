@@ -390,3 +390,95 @@
     grid-template-columns: 1fr;
   }
 }
+/* Login Type Toggle */
+.login-type-toggle {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: #f1f5f9;
+  padding: 0.5rem;
+  border-radius: 1rem;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: transparent;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.toggle-btn:hover:not(.active) {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+/* Admin Secret Field */
+.admin-secret-group {
+  margin-top: 0.5rem;
+}
+
+.admin-hint {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Admin Info Message */
+.admin-info {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #fef3c7;
+  border-radius: 0.75rem;
+  border-left: 3px solid #f59e0b;
+}
+
+.admin-info p {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.75rem;
+  color: #92400e;
+}
+
+/* Input field error state */
+.input-field.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .login-type-toggle {
+    margin-bottom: 1.5rem;
+  }
+  
+  .toggle-btn {
+    padding: 0.6rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .toggle-btn {
+    font-size: 0.7rem;
+    gap: 0.25rem;
+  }
+}

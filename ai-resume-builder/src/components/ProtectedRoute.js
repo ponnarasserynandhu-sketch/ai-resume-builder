@@ -1,11 +1,18 @@
+import React from "react";
 import { Navigate } from "react-router-dom";
 
-function ProtectedRoute({ children }) {
-
+function ProtectedRoute({ children, adminOnly = false }) {
   const token = localStorage.getItem("token");
+  const userRole = localStorage.getItem("userRole");
 
-  if(!token){
+  // Check if user is logged in
+  if (!token) {
     return <Navigate to="/login" />;
+  }
+
+  // Check if route requires admin access
+  if (adminOnly && userRole !== "admin") {
+    return <Navigate to="/dashboard" />;
   }
 
   return children;
