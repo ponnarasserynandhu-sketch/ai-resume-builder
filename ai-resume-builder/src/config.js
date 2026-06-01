@@ -2,11 +2,9 @@
 
 // Get the backend URL based on environment
 const getBackendURL = () => {
-  // Production - Replace this with your actual Render backend URL after deployment
+  // Production - Use your actual Render backend URL
   if (process.env.NODE_ENV === 'production') {
-    // TODO: Replace with your actual Render backend URL
-    // Example: 'https://ai-resume-backend.onrender.com'
-    return 'https://your-backend-url.onrender.com';
+    return 'https://ai-resume-builder-rlwj.onrender.com';  // ← YOUR ACTUAL BACKEND URL
   }
   
   // Development
