@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
 const Profile = require("../models/Profile");
-const Resume = require("../models/Resume");
 const multer = require("multer");
 const logActivity = require("../middleware/activityLogger");
 
@@ -18,15 +17,45 @@ const upload = multer({ storage });
 // SAVE PROFILE
 router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
   try {
+    console.log("Received save request for user:", req.user.id);
+    
     let profile = await Profile.findOne({ userId: req.user.id });
-
-    const data = {
-      ...req.body,
-      userId: req.user.id
+    
+    // Prepare data from request body
+    const updateData = {
+      userId: req.user.id,
+      name: req.body.name || "",
+      email: req.body.email || "",
+      phone: req.body.phone || "",
+      address: req.body.address || "",
+      role: req.body.role || "",
+      linkedin: req.body.linkedin || "",
+      github: req.body.github || "",
+      twitter: req.body.twitter || "",
+      about: req.body.about || "",
+      skills: req.body.skills || "",
+      experience: req.body.experience || "",
+      projects: req.body.projects || "",
+      certificates: req.body.certificates || "",
+      languages: req.body.languages || "",
+      tenthSchool: req.body.tenthSchool || "",
+      tenthPercentage: req.body.tenthPercentage || "",
+      tenthYear: req.body.tenthYear || "",
+      interCollege: req.body.interCollege || "",
+      interCourse: req.body.interCourse || "",
+      interPercentage: req.body.interPercentage || "",
+      interYear: req.body.interYear || "",
+      degreeCollege: req.body.degreeCollege || "",
+      degreeCourse: req.body.degreeCourse || "",
+      degreePercentage: req.body.degreePercentage || "",
+      degreeYear: req.body.degreeYear || "",
+      profilePhoto: req.body.profilePhoto || "",
+      portfolioUrl: req.body.portfolioUrl || ""
     };
 
+    // Handle file upload
     if (req.file) {
-      data.profilePhoto = `http://localhost:5000/uploads/${req.file.filename}`;
+      updateData.profilePhoto = `http://localhost:5000/uploads/${req.file.filename}`;
     }
 
     let activityType = "profile_updated";
@@ -35,20 +64,34 @@ router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
     if (!profile) {
       activityType = "profile_created";
       activityDesc = "Created new profile";
-      profile = new Profile(data);
+      profile = new Profile(updateData);
       await profile.save();
+      console.log("Created new profile:", profile._id);
     } else {
-      await Profile.updateOne({ userId: req.user.id }, data);
+      // Update existing profile - fixed deprecation warning
+      const updatedProfile = await Profile.findOneAndUpdate(
+        { userId: req.user.id },
+        { $set: updateData },
+        { returnDocument: 'after' } // This fixes the deprecation warning
+      );
+      console.log("Updated existing profile:", updatedProfile._id);
     }
 
     // Log profile activity
     await logActivity(req, req.user.id, activityType, activityDesc);
 
-    res.json({ success: true, message: "Profile saved successfully" });
+    // Fetch the updated profile to return
+    const savedProfile = await Profile.findOne({ userId: req.user.id });
+    
+    res.json({ 
+      success: true, 
+      message: "Profile saved successfully",
+      profile: savedProfile
+    });
 
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ success: false, message: "Error saving profile" });
+    console.log("Error saving profile:", err);
+    res.status(500).json({ success: false, message: err.message || "Error saving profile" });
   }
 });
 
@@ -56,6 +99,7 @@ router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
 router.get("/me", auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
+    console.log("Fetched profile for user:", req.user.id, profile ? "Found" : "Not found");
     res.json({ success: true, profile });
   } catch (err) {
     console.error(err);
@@ -72,7 +116,6 @@ router.post("/create-portfolio", auth, async (req, res) => {
       return res.status(404).json({ success: false, message: "Profile not found. Please complete your profile first." });
     }
     
-    // Check if portfolio already exists
     if (profile.hasPortfolio) {
       return res.json({ 
         success: true, 
@@ -82,18 +125,14 @@ router.post("/create-portfolio", auth, async (req, res) => {
       });
     }
     
-    // Mark that portfolio has been created
     profile.hasPortfolio = true;
     profile.portfolioCreatedAt = new Date();
     
-    // Generate portfolio URL if not exists
     if (!profile.portfolioUrl) {
       profile.portfolioUrl = `/portfolio/share/${profile.userId}`;
     }
     
     await profile.save();
-    
-    // Log portfolio creation activity
     await logActivity(req, req.user.id, "portfolio_created", "Generated portfolio page from profile");
     
     res.json({ 
@@ -130,7 +169,7 @@ router.get("/portfolio-status", auth, async (req, res) => {
   }
 });
 
-// UPDATE PORTFOLIO (for existing portfolio)
+// UPDATE PORTFOLIO
 router.put("/update-portfolio", auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
@@ -143,7 +182,6 @@ router.put("/update-portfolio", auth, async (req, res) => {
       return res.status(400).json({ success: false, message: "Portfolio not created yet. Please create portfolio first." });
     }
     
-    // Update profile data (which will reflect in portfolio)
     const { name, role, about, skills, experience, projects, certificates, languages } = req.body;
     
     if (name) profile.name = name;
@@ -156,8 +194,6 @@ router.put("/update-portfolio", auth, async (req, res) => {
     if (languages) profile.languages = languages;
     
     await profile.save();
-    
-    // Log portfolio update activity
     await logActivity(req, req.user.id, "portfolio_updated", "Updated portfolio information");
     
     res.json({ 
@@ -171,26 +207,19 @@ router.put("/update-portfolio", auth, async (req, res) => {
   }
 });
 
-// @route   GET /api/profile/public/:id
-// @desc    Get public profile by ID or encoded email (no authentication required)
-// @access  Public
+// GET PUBLIC PROFILE
 router.get("/public/:id", async (req, res) => {
   try {
     const { id } = req.params;
     let query = {};
     
-    // Check if id is a valid MongoDB ObjectId (24 characters hex)
     if (id.match(/^[0-9a-fA-F]{24}$/)) {
-      // If it's a valid ObjectId, search by userId
       query = { userId: id };
     } else {
-      // Otherwise, try to decode as base64 email
       try {
-        // Decode email from base64
         const email = Buffer.from(id, 'base64').toString();
         query = { email: email };
       } catch (decodeError) {
-        console.error("Base64 decode error:", decodeError);
         return res.status(404).json({ success: false, message: "Profile not found" });
       }
     }
@@ -201,12 +230,8 @@ router.get("/public/:id", async (req, res) => {
       return res.status(404).json({ success: false, message: "Profile not found" });
     }
     
-    // Remove sensitive data if any
     const publicProfile = profile.toObject();
     delete publicProfile.__v;
-    
-    // Increment view count (optional feature)
-    // You could add a views field to track portfolio views
     
     res.json({ success: true, profile: publicProfile });
   } catch (error) {
@@ -227,8 +252,6 @@ router.delete("/delete-portfolio", auth, async (req, res) => {
     profile.hasPortfolio = false;
     profile.portfolioCreatedAt = null;
     await profile.save();
-    
-    // Log portfolio deletion activity
     await logActivity(req, req.user.id, "portfolio_deleted", "Deleted portfolio page");
     
     res.json({ 
