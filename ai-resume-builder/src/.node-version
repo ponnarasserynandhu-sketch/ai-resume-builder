@@ -1,0 +1,2 @@
+cd ~/OneDrive/Desktop/ai\ resume/ai-resume-builder
+echo "20.18.0" > .node-version
