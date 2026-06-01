@@ -23,18 +23,24 @@ directories.forEach(dir => {
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  process.env.FRONTEND_URL,
+  "https://ai-resume-builder-zeta-dusky.vercel.app",  // ← ADD YOUR SPECIFIC URL
   "https://ai-resume-builder.vercel.app",
-  "https://ai-resume-builder.netlify.app"
+  "https://ai-resume-builder.netlify.app",
+  process.env.FRONTEND_URL
 ].filter(Boolean);
+
+console.log("🔧 Allowed CORS origins:", allowedOrigins);
 
 app.use(cors({
   origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== "production") {
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      console.log(`❌ CORS blocked origin: ${origin}`);
+      callback(new Error(`Not allowed by CORS: ${origin}`));
     }
   },
   credentials: true,
