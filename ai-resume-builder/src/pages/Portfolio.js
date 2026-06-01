@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import API_URL from '../config';
 import "./Portfolio.css";
 import {
   FiGlobe,
@@ -89,7 +90,7 @@ function Portfolio() {
       }
 
       const res = await axios.get(
-        "http://localhost:5000/api/profile/me",
+        `${API_URL}/api/profile/me`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -113,7 +114,7 @@ function Portfolio() {
       if (!token) return;
       
       const res = await axios.get(
-        "http://localhost:5000/api/portfolio/my-portfolio",
+        `${API_URL}/api/portfolio/my-portfolio`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -142,7 +143,7 @@ function Portfolio() {
 
       // Save/update profile - send all user data as JSON
       const profileRes = await axios.post(
-        "http://localhost:5000/api/profile/save",
+        `${API_URL}/api/profile/save`,
         user,
         { 
           headers: { 
@@ -163,7 +164,7 @@ function Portfolio() {
         if (!portfolioId) {
           try {
             const portfolioRes = await axios.post(
-              "http://localhost:5000/api/portfolio/create",
+              `${API_URL}/api/portfolio/create`,
               {},
               { 
                 headers: { 

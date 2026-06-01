@@ -19,8 +19,24 @@ directories.forEach(dir => {
 });
 
 // ==================== MIDDLEWARE ====================
+// Dynamic CORS for production
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  process.env.FRONTEND_URL,
+  "https://ai-resume-builder.vercel.app",
+  "https://ai-resume-builder.netlify.app"
+].filter(Boolean);
+
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== "production") {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -36,7 +52,8 @@ app.get("/health", (req, res) => {
     success: true,
     status: "healthy",
     timestamp: new Date().toISOString(),
-    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    environment: process.env.NODE_ENV || "development"
   });
 });
 
@@ -98,20 +115,11 @@ try {
   console.warn("⚠️ Portfolio routes not found");
 }
 
-// Settings routes (NEW)
+// Settings routes
 try {
   const settingsRoutes = require("./routes/settings");
   app.use("/api/settings", settingsRoutes);
   console.log("✅ Settings routes loaded");
-  console.log("   ⚙️  GET    /api/settings/settings - Get system settings");
-  console.log("   ⚙️  GET    /api/settings/system-info - Get system information");
-  console.log("   ⚙️  GET    /api/settings/features - Get platform features");
-  console.log("   ⚙️  GET    /api/settings/platform-stats - Get platform statistics");
-  console.log("   ⚙️  GET    /api/settings/health - Get system health");
-  console.log("   ⚙️  POST   /api/settings/export-data - Export data");
-  console.log("   ⚙️  POST   /api/settings/clear-cache - Clear cache");
-  console.log("   ⚙️  POST   /api/settings/clear-all-data - Clear all data (DANGER)");
-  console.log("   ⚙️  PUT    /api/settings/ - Update settings");
 } catch (err) {
   console.warn("⚠️ Settings routes not found:", err.message);
 }
@@ -123,9 +131,6 @@ try {
   const aiRoutes = require("./routes/ai");
   app.use("/api/ai", aiRoutes);
   console.log("✅ AI Text Routes loaded");
-  console.log("   📝 POST /api/ai/summary - Generate summary");
-  console.log("   🔧 POST /api/ai/skills - Suggest skills");
-  console.log("   💼 POST /api/ai/experience - Improve experience");
 } catch (err) {
   console.error("❌ Failed to load AI Text routes:", err.message);
 }
@@ -136,19 +141,24 @@ try {
   if (aiResumeRoutes) {
     app.use("/api/ai", aiResumeRoutes);
     console.log("✅ AI Resume Layout Routes loaded");
-    console.log("   🤖 POST /api/ai/clone-layout - Clone resume layout from image");
   }
 } catch (err) {
   console.error("❌ Failed to load AI Resume Layout routes:", err.message);
 }
 
-// ==================== DATABASE CONNECTION ====================
-if (process.env.MONGO_URI) {
-  mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err => console.error("❌ MongoDB Error:", err.message));
-} else {
-  console.warn("⚠️ MONGO_URI not provided");
+// ==================== SERVE FRONTEND (Production) ====================
+if (process.env.NODE_ENV === "production") {
+  // Serve static files from the React frontend build
+  const frontendBuildPath = path.join(__dirname, "../build");
+  if (fs.existsSync(frontendBuildPath)) {
+    app.use(express.static(frontendBuildPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(frontendBuildPath, "index.html"));
+    });
+    console.log("✅ Serving frontend from build directory");
+  } else {
+    console.warn("⚠️ Frontend build not found. Run 'npm run build' in the frontend directory");
+  }
 }
 
 // ==================== ERROR HANDLING ====================
@@ -167,30 +177,46 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ==================== START SERVER ====================
+// ==================== DATABASE CONNECTION & START SERVER ====================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-  console.log(`\n📋 Available Endpoints:`);
-  console.log(`\n🔐 Auth & User:`);
-  console.log(`   GET  http://localhost:${PORT}/api/user/me - Get current user`);
-  console.log(`   POST http://localhost:${PORT}/api/auth/login - User login`);
-  console.log(`   POST http://localhost:${PORT}/api/auth/register - User register`);
-  console.log(`\n🤖 AI Routes:`);
-  console.log(`   POST http://localhost:${PORT}/api/ai/summary - AI Summary`);
-  console.log(`   POST http://localhost:${PORT}/api/ai/skills - AI Skills`);
-  console.log(`   POST http://localhost:${PORT}/api/ai/experience - AI Experience`);
-  console.log(`   POST http://localhost:${PORT}/api/ai/clone-layout - AI Layout Clone`);
-  console.log(`\n⚙️ Settings Routes (Admin only):`);
-  console.log(`   GET  http://localhost:${PORT}/api/settings/settings - Get system settings`);
-  console.log(`   GET  http://localhost:${PORT}/api/settings/system-info - Get system info`);
-  console.log(`   GET  http://localhost:${PORT}/api/settings/features - Get features`);
-  console.log(`   GET  http://localhost:${PORT}/api/settings/platform-stats - Get stats`);
-  console.log(`   GET  http://localhost:${PORT}/api/settings/health - Get health`);
-  console.log(`   POST http://localhost:${PORT}/api/settings/export-data - Export data`);
-  console.log(`   POST http://localhost:${PORT}/api/settings/clear-cache - Clear cache`);
-  console.log(`   POST http://localhost:${PORT}/api/settings/clear-all-data - Clear all data`);
-  console.log(`   PUT  http://localhost:${PORT}/api/settings/ - Update settings\n`);
-});
+
+if (process.env.MONGO_URI) {
+  mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000,
+  })
+    .then(() => {
+      console.log("✅ MongoDB Connected");
+      startServer();
+    })
+    .catch(err => {
+      console.error("❌ MongoDB Error:", err.message);
+      console.log("⚠️ Starting server without database connection...");
+      startServer();
+    });
+} else {
+  console.warn("⚠️ MONGO_URI not provided");
+  startServer();
+}
+
+function startServer() {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`\n📋 Available Endpoints:`);
+    console.log(`\n🔐 Auth & User:`);
+    console.log(`   POST /api/auth/login - User login`);
+    console.log(`   POST /api/auth/register - User register`);
+    console.log(`   GET  /api/user/me - Get current user`);
+    console.log(`\n🤖 AI Routes:`);
+    console.log(`   POST /api/ai/summary - AI Summary`);
+    console.log(`   POST /api/ai/skills - AI Skills`);
+    console.log(`   POST /api/ai/experience - AI Experience`);
+    console.log(`   POST /api/ai/clone-layout - AI Layout Clone`);
+    console.log(`\n⚙️ Settings Routes:`);
+    console.log(`   GET  /api/settings/settings - Get system settings`);
+    console.log(`   GET  /api/settings/health - Get health`);
+    console.log(`\n✅ Server ready!\n`);
+  });
+}
 
 module.exports = app;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_URL from '../config';
 import {
   FiUsers,
   FiUserCheck,
@@ -84,7 +85,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:5000/api/admin/dashboard",
+        `${API_URL}/api/admin/dashboard`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -103,7 +104,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:5000/api/admin/chart-data",
+        `${API_URL}/api/admin/chart-data`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -149,7 +150,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:5000/api/admin/recent-activities",
+        `${API_URL}/api/admin/recent-activities`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -181,7 +182,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `http://localhost:5000/api/admin/users/${userId}/status`,
+        `${API_URL}/api/admin/users/${userId}/status`,
         { action },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -204,7 +205,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:5000/api/settings/export-data",
+        `${API_URL}/api/settings/export-data`,
         { type: "all" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -243,7 +244,7 @@ function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:5000/api/settings/clear-cache",
+        `${API_URL}/api/settings/clear-cache`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -744,7 +745,7 @@ function AdminDashboard() {
           </div>
         )}
 
-        {/* Settings Tab Content - Simplified & Redesigned */}
+        {/* Settings Tab Content */}
         {activeTab === 'settings' && (
           <div className="settings-content">
             {/* Header */}

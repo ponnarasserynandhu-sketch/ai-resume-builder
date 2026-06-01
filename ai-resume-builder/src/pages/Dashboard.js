@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Dashboard.css";
 import { useNavigate } from "react-router-dom";
+import API_URL from '../config';
 import Profile from "./Profile";
 import CreateResume from "./CreateResume";
 import ViewResumes from "./ViewResumes";
@@ -37,23 +38,22 @@ function Dashboard() {
     fetchDashboardData();
   }, []);
 
-  //  Fetch user data from API with token validation
+  // Fetch user data from API with token validation
   const fetchUser = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        navigate("/login"); // ✅ redirect if no token
+        navigate("/login");
         return;
       }
 
-      const res = await fetch("http://localhost:5000/api/user/me", {
+      const res = await fetch(`${API_URL}/api/user/me`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
       if (res.status === 401) {
-        // ✅ token invalid → logout
         logout();
         return;
       }
@@ -71,20 +71,20 @@ function Dashboard() {
     }
   };
 
-  //  Single API call to /api/dashboard with token validation
+  // Single API call to /api/dashboard with token validation
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const res = await fetch("http://localhost:5000/api/dashboard", {
+      const res = await fetch(`${API_URL}/api/dashboard`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
       if (res.status === 401) {
-        logout(); // ✅ auto logout if token expired
+        logout();
         return;
       }
 
@@ -92,12 +92,9 @@ function Dashboard() {
         const data = await res.json();
 
         if (data.success) {
-          // ✅ SET VALUES FROM BACKEND
           setResumeCount(data.data.totalResumes || 0);
-          // ✅ Get all recent resumes
           setRecentResumes(data.data.recentResumes || []);
-          // optional
-          setPortfolioCount(0); // since no backend yet
+          setPortfolioCount(0);
         }
       }
     } catch (error) {
@@ -192,13 +189,11 @@ function Dashboard() {
                         <div className="resume-info">
                           <FiFileText size={20} color="#4361ee" />
                           <div>
-                            
                             <h4>{resume.data?.name || "Untitled Resume"}</h4>
                             <p>Created {resume.createdAt ? new Date(resume.createdAt).toLocaleDateString() : "Recently"}</p>
                           </div>
                         </div>
                         <span className="resume-badge">
-                          
                           {resume.data?.role || "Resume"}
                         </span>
                       </div>
@@ -330,7 +325,6 @@ function Dashboard() {
             </div>
             
             <div className="user-menu">
-              {/*  Safe avatar with optional chaining */}
               <div className="user-avatar">
                 {userName?.charAt(0)?.toUpperCase() || "U"}
               </div>

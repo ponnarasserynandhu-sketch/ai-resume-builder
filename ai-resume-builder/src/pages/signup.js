@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import API_URL from '../config';
 import "./Signup.css";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -73,7 +74,7 @@ function Signup() {
     checkPasswordStrength(newPassword);
   };
 
-  // Submit handler - Fixed API endpoint
+  // Submit handler - Using API_URL
   const submit = async (e) => {
     e.preventDefault();
 
@@ -82,8 +83,8 @@ function Signup() {
     setIsLoading(true);
 
     try {
-      // Using fetch directly for better error handling
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      // Using API_URL for dynamic backend URL
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

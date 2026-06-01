@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_URL from '../config';
 import "./EditResumes.css";
 import {
   FiUser,
@@ -59,7 +60,7 @@ function EditResume({ onResumeUpdated }) {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      const res = await axios.get("http://localhost:5000/api/resume/all", {
+      const res = await axios.get(`${API_URL}/api/resume/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -92,7 +93,7 @@ function EditResume({ onResumeUpdated }) {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `http://localhost:5000/api/resume/${selectedResume._id}`,
+        `${API_URL}/api/resume/${selectedResume._id}`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -115,7 +116,7 @@ function EditResume({ onResumeUpdated }) {
     if (!window.confirm("Delete this resume permanently?")) return;
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.delete(`http://localhost:5000/api/resume/${id}`, {
+      const res = await axios.delete(`${API_URL}/api/resume/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {

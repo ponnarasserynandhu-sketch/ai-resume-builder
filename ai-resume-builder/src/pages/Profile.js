@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import API_URL from '../config';
 import "./Profile.css";
 import {
   FiUser,
@@ -77,7 +78,7 @@ function Profile() {
       }
 
       const res = await axios.get(
-        "http://localhost:5000/api/profile/me",
+        `${API_URL}/api/profile/me`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -180,7 +181,7 @@ function Profile() {
       }
 
       const res = await axios.post(
-        "http://localhost:5000/api/profile/save",
+        `${API_URL}/api/profile/save`,
         formData,
         { 
           headers: { 
@@ -219,7 +220,7 @@ function Profile() {
   const generateSummary = async () => {
     setAiLoading(prev => ({ ...prev, summary: true }));
     try {
-      const res = await axios.post("http://localhost:5000/api/ai/summary", {
+      const res = await axios.post(`${API_URL}/api/ai/summary`, {
         role: user.role,
         skills: user.skills,
       });
@@ -248,7 +249,7 @@ function Profile() {
   const generateSkills = async () => {
     setAiLoading(prev => ({ ...prev, skills: true }));
     try {
-      const res = await axios.post("http://localhost:5000/api/ai/skills", {
+      const res = await axios.post(`${API_URL}/api/ai/skills`, {
         role: user.role,
       });
 
@@ -272,11 +273,11 @@ function Profile() {
     }
   };
 
-  // EXPERIENCE BUTTON - Now matches the style of other AI buttons
+  // EXPERIENCE BUTTON
   const improveExperience = async () => {
     setAiLoading(prev => ({ ...prev, experience: true }));
     try {
-      const res = await axios.post("http://localhost:5000/api/ai/experience", {
+      const res = await axios.post(`${API_URL}/api/ai/experience`, {
         experience: user.experience,
       });
 
@@ -790,7 +791,7 @@ function Profile() {
                 </div>
               )}
 
-              {/* Experience with AI Button - Now matches other AI buttons style */}
+              {/* Experience with AI Button */}
               {activeSection === "experience" && (
                 <div className="form-card animate-fadeIn">
                   <div className="card-header">

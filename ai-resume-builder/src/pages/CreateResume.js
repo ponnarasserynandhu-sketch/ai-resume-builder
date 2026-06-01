@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import axios from "axios";
+import API_URL from '../config';
 import "./CreateResume.css";
 import {
   FiDownload,
@@ -242,7 +243,7 @@ function AIResumeGenerator({ userProfile, onAIStyleGenerated, onCancel }) {
       showNotification(`🔍 AI is analyzing ${imageFile.name}...`, "info");
       
       const response = await axios.post(
-        "http://localhost:5000/api/ai/clone-layout",
+        `${API_URL}/api/ai/clone-layout`,
         formData,
         {
           headers: {
@@ -913,7 +914,7 @@ function CreateResume() {
       try {
         const token = localStorage.getItem("token");
         if (!token) return;
-        const res = await axios.get("http://localhost:5000/api/profile/me", {
+        const res = await axios.get(`${API_URL}/api/profile/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.success && res.data.profile) {
@@ -992,7 +993,7 @@ function CreateResume() {
         showNotification("Please login first.", "error");
         return;
       }
-      await axios.post("http://localhost:5000/api/resume/save", {
+      await axios.post(`${API_URL}/api/resume/save`, {
         resumeData: user, 
         template: usingAiTemplate ? "ai-generated" : selectedTemplate, 
         colorSettings: { primaryColor, accentColor },

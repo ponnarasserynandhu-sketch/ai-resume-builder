@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import API_URL from '../config';
 import "./Portfolio.css"; // Changed from ../Portfolio.css to ./Portfolio.css
 import {
   FiUser,
@@ -31,7 +32,7 @@ function PublicPortfolio() {
     setError(null);
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/profile/public/${id}`
+        `${API_URL}/api/profile/public/${id}`
       );
 
       if (res.data.success && res.data.profile) {

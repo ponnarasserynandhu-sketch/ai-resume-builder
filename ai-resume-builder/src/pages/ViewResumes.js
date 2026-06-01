@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import API_URL from '../config';
 import { useNavigate } from "react-router-dom";
 import "./ViewResumes.css";
 import {
@@ -36,7 +37,7 @@ function ViewResumes() {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-      const res = await axios.get("http://localhost:5000/api/resume/all", {
+      const res = await axios.get(`${API_URL}/api/resume/all`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -73,7 +74,7 @@ function ViewResumes() {
     if (!window.confirm("Are you sure you want to delete this resume?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/resume/${id}`, {
+      await axios.delete(`${API_URL}/api/resume/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchResumes();
