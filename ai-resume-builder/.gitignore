@@ -29,3 +29,6 @@ server/package-lock.json
 .env.env
 .env.production
 .env.local
+
+.vercel
+.env*
