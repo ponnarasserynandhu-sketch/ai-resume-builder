@@ -9,7 +9,6 @@ import {
   FiChevronDown,
   FiHome,
   FiStar,
-  FiDollarSign,
   FiFileText,
   FiSettings,
   FiHelpCircle,
@@ -30,6 +29,52 @@ function Navbar() {
   const location = useLocation();
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
+
+  // Function to scroll to Hero section
+  const scrollToHome = (e) => {
+    e.preventDefault();
+    
+    // If we're on the home page, scroll to hero
+    if (location.pathname === "/") {
+      const heroSection = document.getElementById("hero-section");
+      if (heroSection) {
+        heroSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      closeMenu();
+    } else {
+      // If not on home page, navigate to home and then scroll
+      navigate("/");
+      setTimeout(() => {
+        const heroSection = document.getElementById("hero-section");
+        if (heroSection) {
+          heroSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    }
+  };
+
+  // Function to scroll to Features section
+  const scrollToFeatures = (e) => {
+    e.preventDefault();
+    
+    // If we're on the home page, scroll to features
+    if (location.pathname === "/") {
+      const featuresSection = document.getElementById("features-section");
+      if (featuresSection) {
+        featuresSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      closeMenu();
+    } else {
+      // If not on home page, navigate to home and then scroll
+      navigate("/");
+      setTimeout(() => {
+        const featuresSection = document.getElementById("features-section");
+        if (featuresSection) {
+          featuresSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    }
+  };
 
   // authentication 
   const checkAuthStatus = () => {
@@ -94,13 +139,13 @@ function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  
+  // Close mobile menu when route changes
   useEffect(() => {
     if (isMenuOpen) {
-      closeMenu();
+      setIsMenuOpen(false);
+      document.body.style.overflow = "auto";
     }
-    
-  }, [location.pathname, isMenuOpen]);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -113,7 +158,8 @@ function Navbar() {
     setUserRole("");
     navigate("/");
     if (isMenuOpen) {
-      closeMenu();
+      setIsMenuOpen(false);
+      document.body.style.overflow = "auto";
     }
   };
 
@@ -138,14 +184,15 @@ function Navbar() {
     }
   };
 
+  // Navigation links - Home and Features now use scroll functions
   const navLinks = [
-    { to: "/", label: "Home", icon: FiHome, exact: true, protected: false },
-    { to: "/features", label: "Features", icon: FiStar, exact: false, protected: false },
-    { to: "/pricing", label: "Pricing", icon: FiDollarSign, exact: false, protected: false },
-    { to: "/dashboard", label: "Resume Builder", icon: FiFileText, exact: false, protected: true }
+    { to: null, label: "Home", icon: FiHome, exact: true, protected: false, onClick: scrollToHome },
+    { to: null, label: "Features", icon: FiStar, exact: false, protected: false, onClick: scrollToFeatures },
+    { to: "/dashboard", label: "Resume Builder", icon: FiFileText, exact: false, protected: true, onClick: null }
   ];
 
   const isActiveLink = (path, exact = false) => {
+    if (!path) return false;
     if (exact) {
       return location.pathname === path;
     }
@@ -155,8 +202,8 @@ function Navbar() {
   return (
     <nav className={`navbar ${isScrolled ? "navbar-scrolled" : ""}`}>
       <div className="nav-container">
-        {/* Logo Section with New Logo */}
-        <Link to="/" className="nav-logo" onClick={closeMenu}>
+        {/* Logo Section - Also scrolls to home */}
+        <div className="nav-logo" onClick={scrollToHome} style={{ cursor: "pointer" }}>
           <div className="logo-wrapper">
             <div className="logo-icon">
               <svg className="logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -177,17 +224,17 @@ function Navbar() {
               <span className="logo-subtext">Builder</span>
             </div>
           </div>
-        </Link>
+        </div>
 
         {/* Desktop Navigation Links */}
         <ul className="nav-links">
           {navLinks.map((link) => {
             const Icon = link.icon;
-            const active = isActiveLink(link.to, link.exact);
+            const active = link.to ? isActiveLink(link.to, link.exact) : false;
             
             if (link.protected && !isLoggedIn) {
               return (
-                <li key={link.to}>
+                <li key={link.label}>
                   <button 
                     onClick={handleResumeBuilderClick}
                     className={`nav-link nav-link-button ${active ? "active" : ""}`}
@@ -199,12 +246,27 @@ function Navbar() {
               );
             }
             
+            // If it's a link with custom onClick (Home or Features)
+            if (link.onClick) {
+              return (
+                <li key={link.label}>
+                  <button 
+                    onClick={link.onClick}
+                    className={`nav-link nav-link-button ${active ? "active" : ""}`}
+                  >
+                    <Icon size={18} />
+                    <span>{link.label}</span>
+                  </button>
+                </li>
+              );
+            }
+            
             return (
-              <li key={link.to}>
+              <li key={link.label}>
                 <Link 
                   to={link.to} 
                   className={`nav-link ${active ? "active" : ""}`}
-                  onClick={link.protected && !isLoggedIn ? handleResumeBuilderClick : undefined}
+                  onClick={link.protected && !isLoggedIn ? handleResumeBuilderClick : closeMenu}
                 >
                   <Icon size={18} />
                   <span>{link.label}</span>
@@ -356,7 +418,7 @@ function Navbar() {
           ref={mobileMenuRef}
         >
           <div className="mobile-menu-header">
-            <Link to="/" className="mobile-logo" onClick={closeMenu}>
+            <div className="mobile-logo" onClick={scrollToHome} style={{ cursor: "pointer" }}>
               <div className="logo-icon mobile-logo-icon">
                 <svg className="mobile-logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="32" height="32" rx="8" fill="url(#mobileLogoGradient)"/>
@@ -375,7 +437,7 @@ function Navbar() {
                 <span className="logo-text">AI Resume</span>
                 <span className="logo-subtext">Builder</span>
               </div>
-            </Link>
+            </div>
             <button className="close-menu-btn" onClick={closeMenu} aria-label="Close menu">
               <FiX size={24} />
             </button>
@@ -384,11 +446,11 @@ function Navbar() {
           <ul className="mobile-nav-links">
             {navLinks.map((link) => {
               const Icon = link.icon;
-              const active = isActiveLink(link.to, link.exact);
+              const active = link.to ? isActiveLink(link.to, link.exact) : false;
               
               if (link.protected && !isLoggedIn) {
                 return (
-                  <li key={link.to}>
+                  <li key={link.label}>
                     <button 
                       onClick={() => {
                         closeMenu();
@@ -403,8 +465,26 @@ function Navbar() {
                 );
               }
               
+              // For links with custom onClick (Home or Features)
+              if (link.onClick) {
+                return (
+                  <li key={link.label}>
+                    <button 
+                      onClick={() => {
+                        closeMenu();
+                        link.onClick(new Event('click'));
+                      }}
+                      className={`mobile-nav-link ${active ? "active" : ""}`}
+                    >
+                      <Icon size={20} />
+                      <span>{link.label}</span>
+                    </button>
+                  </li>
+                );
+              }
+              
               return (
-                <li key={link.to}>
+                <li key={link.label}>
                   <Link 
                     to={link.to} 
                     className={`mobile-nav-link ${active ? "active" : ""}`} 
@@ -440,15 +520,9 @@ function Navbar() {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/settings" className="mobile-nav-link" onClick={closeMenu}>
-                    <FiSettings size={20} />
-                    <span>Settings</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/help" className="mobile-nav-link" onClick={closeMenu}>
-                    <FiHelpCircle size={20} />
-                    <span>Help & Support</span>
+                  <Link to="/dashboard" className="mobile-nav-link" onClick={closeMenu}>
+                    <FiGrid size={20} />
+                    <span>Dashboard</span>
                   </Link>
                 </li>
               </>

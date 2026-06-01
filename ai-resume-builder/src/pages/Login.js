@@ -19,17 +19,37 @@ function Login() {
     setError("");
 
     try {
+      // Use the same login endpoint for both user and admin
       const res = await axios.post("http://localhost:5000/api/auth/login", {
         email,
         password
-        // ❌ Removed adminSecret - not needed for role-based authentication
       });
 
       if (res.data.success) {
+        const userRole = res.data.user.role;
+        
+        // Check if trying to login as admin but user is not admin
+        if (showAdminLogin && userRole !== "admin") {
+          setError("Invalid admin credentials. Please use admin login.");
+          setLoading(false);
+          return;
+        }
+        
+        // Check if trying to login as user but user is admin
+        if (!showAdminLogin && userRole === "admin") {
+          setError("This is an admin account. Please use Admin Login tab.");
+          setLoading(false);
+          return;
+        }
+
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("userRole", res.data.user.role);
-        localStorage.setItem("userName", res.data.user.name);
-        localStorage.setItem("userEmail", res.data.user.email);
+        localStorage.setItem("user", JSON.stringify({
+          name: res.data.user.name,
+          email: res.data.user.email,
+          role: res.data.user.role
+        }));
+        localStorage.setItem("userRole", res.data.user.role);
         
         // Redirect based on user role
         if (res.data.user.role === "admin") {
@@ -42,10 +62,27 @@ function Login() {
       }
     } catch (err) {
       console.log(err);
-      setError(err.response?.data?.message || "Server error");
+      let errorMessage = err.response?.data?.message || "Server error";
+      
+      // Custom error messages based on context
+      if (showAdminLogin) {
+        errorMessage = "Invalid admin credentials.";
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Reset form when toggling between user and admin login
+  const handleToggleChange = (isAdmin) => {
+    setShowAdminLogin(isAdmin);
+    setEmail("");
+    setPassword("");
+    setError("");
+    setEmailFocused(false);
+    setPasswordFocused(false);
   };
 
   return (
@@ -122,19 +159,13 @@ function Login() {
           <div className="login-type-toggle">
             <button 
               className={`toggle-btn ${!showAdminLogin ? 'active' : ''}`}
-              onClick={() => {
-                setShowAdminLogin(false);
-                setError("");
-              }}
+              onClick={() => handleToggleChange(false)}
             >
               User Login
             </button>
             <button 
               className={`toggle-btn ${showAdminLogin ? 'active' : ''}`}
-              onClick={() => {
-                setShowAdminLogin(true);
-                setError("");
-              }}
+              onClick={() => handleToggleChange(true)}
             >
               <FiShield /> Admin Login
             </button>
@@ -153,7 +184,7 @@ function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   onFocus={() => setEmailFocused(true)}
                   onBlur={() => setEmailFocused(false)}
-                  placeholder="name@company.com"
+                  placeholder={showAdminLogin ? "admin@example.com" : "name@company.com"}
                   required
                   disabled={loading}
                 />
@@ -172,7 +203,7 @@ function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => setPasswordFocused(true)}
                   onBlur={() => setPasswordFocused(false)}
-                  placeholder="Enter your password"
+                  placeholder={showAdminLogin ? "Enter admin password" : "Enter your password"}
                   required
                   disabled={loading}
                 />
@@ -185,8 +216,6 @@ function Login() {
                 </button>
               </div>
             </div>
-
-            {/* ❌ REMOVED: Admin Secret Key field - Not needed for role-based authentication */}
 
             {error && (
               <div className="error-message">
@@ -227,11 +256,8 @@ function Login() {
 
           {/* Admin Info Message */}
           {showAdminLogin && (
-            <div className="admin-info">
-              <p>
-                <FiShield size={14} />
-                Admin credentials: admin@example.com / Admin@123
-              </p>
+            <div className="admin-info-message">
+              <p>🔐 Admin login is restricted to authorized personnel only.</p>
             </div>
           )}
         </div>

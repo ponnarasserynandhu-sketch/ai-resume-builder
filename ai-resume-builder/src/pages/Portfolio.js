@@ -27,7 +27,8 @@ import {
   FiLink,
   FiShare2,
   FiCopy,
-  FiCheck
+  FiCheck,
+  FiDownload
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 
@@ -65,20 +66,27 @@ function Portfolio() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [saveError, setSaveError] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [portfolioId, setPortfolioId] = useState(null);
   const portfolioRef = useRef();
 
   useEffect(() => {
     fetchProfile();
+    fetchPortfolio();
   }, []);
 
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
-      if (!token) return;
+      if (!token) {
+        console.error("No token found");
+        setIsLoading(false);
+        return;
+      }
 
       const res = await axios.get(
         "http://localhost:5000/api/profile/me",
@@ -93,8 +101,27 @@ function Portfolio() {
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
+      setSaveError("Failed to load profile data");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchPortfolio = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      
+      const res = await axios.get(
+        "http://localhost:5000/api/portfolio/my-portfolio",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (res.data.success && res.data.portfolio) {
+        setPortfolioId(res.data.portfolio._id);
+      }
+    } catch (err) {
+      console.error("Error fetching portfolio:", err);
     }
   };
 
@@ -105,55 +132,112 @@ function Portfolio() {
 
   const handleSave = async () => {
     setSaveStatus("saving");
+    setSaveError(null);
+    
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post(
+      if (!token) {
+        throw new Error("No authentication token found. Please login again.");
+      }
+
+      // Save/update profile - send all user data as JSON
+      const profileRes = await axios.post(
         "http://localhost:5000/api/profile/save",
         user,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
 
-      if (res.data.success) {
+      if (profileRes.data.success) {
+        if (profileRes.data.profile) {
+          setUser(prev => ({ ...prev, ...profileRes.data.profile }));
+          if (profileRes.data.profile.userId) {
+            setUserId(profileRes.data.profile.userId);
+          }
+        }
+        
+        if (!portfolioId) {
+          try {
+            const portfolioRes = await axios.post(
+              "http://localhost:5000/api/portfolio/create",
+              {},
+              { 
+                headers: { 
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                } 
+              }
+            );
+            
+            if (portfolioRes.data.success) {
+              setPortfolioId(portfolioRes.data.portfolio?._id);
+            }
+          } catch (portfolioErr) {
+            console.error("Error creating portfolio:", portfolioErr);
+          }
+        }
+        
         setSaveStatus("success");
         setIsEditing(false);
-        if (res.data.profile && res.data.profile.userId) {
-          setUserId(res.data.profile.userId);
-        }
         setTimeout(() => setSaveStatus(null), 3000);
       } else {
-        setSaveStatus("error");
-        setTimeout(() => setSaveStatus(null), 3000);
+        throw new Error(profileRes.data.message || "Failed to save profile");
       }
     } catch (err) {
       console.error("Error saving profile:", err);
+      setSaveError(err.response?.data?.message || err.message || "Error saving data");
       setSaveStatus("error");
-      setTimeout(() => setSaveStatus(null), 3000);
+      setTimeout(() => setSaveStatus(null), 5000);
     }
   };
 
-  const exportAsPDF = async () => {
+  const downloadAsPDF = async () => {
     const input = portfolioRef.current;
     if (!input) return;
     
+    setSaveStatus("downloading");
     try {
       const html2canvas = (await import('html2canvas')).default;
       const jsPDF = (await import('jspdf')).default;
+      
       const canvas = await html2canvas(input, { 
         scale: 2, 
         backgroundColor: '#ffffff',
-        logging: false
+        logging: false,
+        useCORS: true,
+        allowTaint: false
       });
+      
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "pt", "a4");
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
       pdf.save(`${user.name || "Portfolio"}_portfolio.pdf`);
-      setSaveStatus("exported");
+      
+      setSaveStatus("downloaded");
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (error) {
-      console.error("Export error:", error);
+      console.error("Download error:", error);
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus(null), 3000);
     }
   };
 
@@ -180,11 +264,12 @@ function Portfolio() {
   };
 
   const shareViaEmail = () => {
+    const link = getShareableLink();
     const subject = encodeURIComponent(`${user.name || "My"} Professional Portfolio`);
     const body = encodeURIComponent(
       `Hello,\n\n` +
       `I'd like to share my professional portfolio with you.\n\n` +
-      `View my portfolio here: ${getShareableLink()}\n\n` +
+      `View my portfolio here: ${link}\n\n` +
       `Best regards,\n${user.name || "Candidate"}`
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
@@ -232,7 +317,7 @@ function Portfolio() {
       <div className="portfolio-hero">
         <div className="hero-badge">
           <FiStar className="star-icon" />
-          <span>Available for opportunities</span>
+          <span>Professional Portfolio</span>
         </div>
         
         <div className="hero-avatar-wrapper">
@@ -279,7 +364,7 @@ function Portfolio() {
               className="social-link"
             >
               <FiLinkedin />
-              <span>{user.linkedin.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')}</span>
+              <span>LinkedIn</span>
             </a>
           )}
           {user.github && (
@@ -437,7 +522,7 @@ function Portfolio() {
                   <div className="project-content">
                     <p>{project}</p>
                     <div className="project-tags">
-                      <span>View Project</span>
+                      <span>Learn More</span>
                       <FiArrowRight />
                     </div>
                   </div>
@@ -523,38 +608,49 @@ function Portfolio() {
         <div className="header-actions">
           {saveStatus === "saving" && (
             <div className="status-badge saving">
-              <FiRefreshCw className="spin" /> Saving...
+              <FiRefreshCw className="spin" /> Saving to database...
+            </div>
+          )}
+          {saveStatus === "downloading" && (
+            <div className="status-badge saving">
+              <FiRefreshCw className="spin" /> Generating PDF...
+            </div>
+          )}
+          {saveStatus === "downloaded" && (
+            <div className="status-badge success">
+              <FiCheckCircle /> PDF downloaded successfully!
             </div>
           )}
           {saveStatus === "success" && (
             <div className="status-badge success">
-              <FiCheckCircle /> Saved successfully!
+              <FiCheckCircle /> Saved to database successfully!
             </div>
           )}
-          {saveStatus === "exported" && (
-            <div className="status-badge success">
-              <FiCheckCircle /> PDF exported!
-            </div>
-          )}
-          {saveStatus === "error" && (
+          {saveStatus === "error" && saveError && (
             <div className="status-badge error">
-              <FiX /> Error saving
+              <FiX /> {saveError}
             </div>
           )}
         </div>
 
         <div className="portfolio-actions">
-          <button className={`action-btn preview-btn ${!isEditing ? 'active' : ''}`} onClick={() => setIsEditing(false)}>
+          <button 
+            className={`action-btn ${!isEditing ? 'active' : ''}`} 
+            onClick={() => setIsEditing(false)}
+          >
             <FiEye size={20} />
-            Preview
+            Preview Portfolio
           </button>
-          <button className={`action-btn edit-btn ${isEditing ? 'active' : ''}`} onClick={() => setIsEditing(true)}>
+          <button 
+            className={`action-btn ${isEditing ? 'active' : ''}`} 
+            onClick={() => setIsEditing(true)}
+          >
             <FiEdit2 size={20} />
             Edit Data
           </button>
-          <button className="action-btn export-btn" onClick={exportAsPDF}>
-            <FiPrinter size={20} />
-            Export Portfolio
+          <button className="action-btn download-btn" onClick={downloadAsPDF}>
+            <FiDownload size={20} />
+            Download PDF
           </button>
         </div>
 
@@ -616,8 +712,7 @@ function Portfolio() {
                 
                 <div className="share-tip">
                   <small>
-                    💡 Tip: Make sure your portfolio is complete before sharing. 
-                    Employers love seeing detailed experience and project information!
+                    💡 Tip: Click the Edit Data button to update your portfolio, then save!
                   </small>
                 </div>
               </div>
@@ -627,9 +722,18 @@ function Portfolio() {
 
         <div className="portfolio-content">
           {!isEditing ? (
-            <div className="portfolio-preview-container">
-              {renderPortfolio()}
-            </div>
+            <>
+              <div className="portfolio-preview-container">
+                {renderPortfolio()}
+              </div>
+              <div className="save-portfolio-section">
+                <button className="save-portfolio-btn" onClick={handleSave}>
+                  <FiSave size={20} />
+                  Save Portfolio to Database
+                </button>
+                <p className="save-hint">Save your portfolio to generate a shareable link and keep your data safe!</p>
+              </div>
+            </>
           ) : (
             <div className="portfolio-edit-container">
               <div className="edit-header">
@@ -649,7 +753,7 @@ function Portfolio() {
                     <input name="email" value={user.email} onChange={handleChange} placeholder="Email" />
                     <input name="phone" value={user.phone} onChange={handleChange} placeholder="Phone" />
                     <input name="address" value={user.address} onChange={handleChange} placeholder="Address" />
-                    <input name="linkedin" value={user.linkedin} onChange={handleChange} placeholder="LinkedIn URL (e.g., linkedin.com/in/username)" />
+                    <input name="linkedin" value={user.linkedin} onChange={handleChange} placeholder="LinkedIn URL" />
                     <input name="github" value={user.github} onChange={handleChange} placeholder="GitHub URL" />
                     <input name="twitter" value={user.twitter} onChange={handleChange} placeholder="Twitter URL" />
                     <input name="profilePhoto" value={user.profilePhoto} onChange={handleChange} placeholder="Profile Photo URL" />
@@ -677,7 +781,7 @@ function Portfolio() {
                     <FiBriefcase />
                     <h4>Experience</h4>
                   </div>
-                  <textarea name="experience" value={user.experience} onChange={handleChange} rows="5" placeholder="Enter each experience on a new line (e.g., Software Engineer at Google, 2020-2023)" />
+                  <textarea name="experience" value={user.experience} onChange={handleChange} rows="5" placeholder="Enter each experience on a new line" />
                 </div>
 
                 <div className="form-section">
@@ -733,9 +837,8 @@ function Portfolio() {
                 </div>
 
                 <div className="form-actions">
-                  <button type="button" className="save-btn" onClick={handleSave}>
-                    <FiSave size={18} />
-                    Save Changes
+                  <button type="button" className="cancel-edit-btn" onClick={() => setIsEditing(false)}>
+                    Cancel
                   </button>
                 </div>
               </form>

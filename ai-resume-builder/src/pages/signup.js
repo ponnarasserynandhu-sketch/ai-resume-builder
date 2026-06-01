@@ -12,8 +12,7 @@ import {
   FiCpu,
   FiTrendingUp,
   FiAward,
-  FiStar,
-  FiZap
+  FiStar
 } from "react-icons/fi";
 
 function Signup() {
@@ -30,11 +29,6 @@ function Signup() {
   const [errors, setErrors] = useState({});
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [focusedField, setFocusedField] = useState(null);
-
-  // Axios base URL
-  const API = axios.create({
-    baseURL: "http://localhost:5000/api",
-  });
 
   // Validation
   const validateForm = () => {
@@ -79,7 +73,7 @@ function Signup() {
     checkPasswordStrength(newPassword);
   };
 
-  // Submit handler
+  // Submit handler - Fixed API endpoint
   const submit = async (e) => {
     e.preventDefault();
 
@@ -88,12 +82,28 @@ function Signup() {
     setIsLoading(true);
 
     try {
-      const res = await API.post("/auth/signup", form);
+      // Using fetch directly for better error handling
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password
+        }),
+      });
 
-      if (res.data.success) {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+      const data = await response.json();
+      console.log("Signup response:", data);
 
+      if (data.success) {
+        // Store token and user data
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        
+        // Show success message
         const successMessage = document.createElement("div");
         successMessage.className = "success-toast";
         successMessage.innerHTML = "✨ Account created successfully! Redirecting...";
@@ -104,12 +114,13 @@ function Signup() {
           navigate("/dashboard");
         }, 1500);
       } else {
-        throw new Error(res.data.message);
+        throw new Error(data.message || "Signup failed");
       }
     } catch (error) {
+      console.error("Signup error:", error);
       const errorMessage = document.createElement("div");
       errorMessage.className = "error-toast";
-      errorMessage.innerHTML = error.response?.data?.message || "Signup failed. Please try again.";
+      errorMessage.innerHTML = error.message || "Signup failed. Please try again.";
       document.body.appendChild(errorMessage);
 
       setTimeout(() => {

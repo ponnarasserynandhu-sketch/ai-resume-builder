@@ -215,7 +215,7 @@ function Profile() {
     }
   };
 
-  //  SUMMARY BUTTON
+  // SUMMARY BUTTON
   const generateSummary = async () => {
     setAiLoading(prev => ({ ...prev, summary: true }));
     try {
@@ -244,7 +244,7 @@ function Profile() {
     }
   };
 
-  //  SKILLS BUTTON
+  // SKILLS BUTTON
   const generateSkills = async () => {
     setAiLoading(prev => ({ ...prev, skills: true }));
     try {
@@ -272,7 +272,7 @@ function Profile() {
     }
   };
 
-  //  EXPERIENCE BUTTON
+  // EXPERIENCE BUTTON - Now matches the style of other AI buttons
   const improveExperience = async () => {
     setAiLoading(prev => ({ ...prev, experience: true }));
     try {
@@ -531,6 +531,7 @@ function Profile() {
                           type="button"
                           onClick={generateSummary}
                           disabled={aiLoading.summary}
+                          className="ai-button summary"
                           style={{
                             padding: '8px 16px',
                             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -553,6 +554,7 @@ function Profile() {
                             </>
                           ) : (
                             <>
+                              <FiRefreshCw size={16} />
                               Generate AI Summary
                             </>
                           )}
@@ -592,6 +594,7 @@ function Profile() {
                           type="button"
                           onClick={generateSkills}
                           disabled={aiLoading.skills}
+                          className="ai-button skills"
                           style={{
                             padding: '8px 16px',
                             background: 'linear-gradient(135deg, #f9c74f 0%, #f9844a 100%)',
@@ -614,6 +617,7 @@ function Profile() {
                             </>
                           ) : (
                             <>
+                              <FiRefreshCw size={16} />
                               Suggest Skills with AI
                             </>
                           )}
@@ -786,11 +790,11 @@ function Profile() {
                 </div>
               )}
 
-              {/* Experience with AI Button */}
+              {/* Experience with AI Button - Now matches other AI buttons style */}
               {activeSection === "experience" && (
                 <div className="form-card animate-fadeIn">
                   <div className="card-header">
-                    <div className="header-icon" style={{ background: "#9c89b815", color: "#9c89b8" }}>
+                    <div className="header-icon" style={{ background: "#8b5cf615", color: "#8b5cf6" }}>
                       <FiBriefcase size={24} />
                     </div>
                     <div>
@@ -806,9 +810,10 @@ function Profile() {
                           type="button"
                           onClick={improveExperience}
                           disabled={aiLoading.experience}
+                          className="ai-button experience"
                           style={{
                             padding: '8px 16px',
-                            background: 'linear-gradient(135deg, #9c89b8 0%, #06d6a0 100%)',
+                            background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',
@@ -828,6 +833,7 @@ function Profile() {
                             </>
                           ) : (
                             <>
+                              <FiRefreshCw size={16} />
                               Improve with AI
                             </>
                           )}

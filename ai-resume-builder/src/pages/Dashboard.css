@@ -1,4 +1,3 @@
-
 * {
   margin: 0;
   padding: 0;
@@ -61,44 +60,18 @@
   background-clip: text;
 }
 
+.logo-tagline {
+  font-size: 10px;
+  color: #64748b;
+  display: block;
+}
+
 .close-mobile-menu {
   display: none;
   background: none;
   border: none;
   font-size: 28px;
   cursor: pointer;
-  color: #64748b;
-}
-
-.user-info-sidebar {
-  padding: 24px;
-  text-align: center;
-  border-bottom: 1px solid #eef2f6;
-}
-
-.user-avatar-sidebar {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #4361ee, #3b2f9e);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  font-weight: 600;
-  color: white;
-  margin: 0 auto 16px;
-}
-
-.user-name-sidebar {
-  font-weight: 600;
-  font-size: 16px;
-  color: #1e293b;
-  margin-bottom: 4px;
-}
-
-.user-email-sidebar {
-  font-size: 12px;
   color: #64748b;
 }
 
@@ -210,7 +183,7 @@
 /* Topbar */
 .topbar {
   background: white;
-  padding: 24px 32px;
+  padding: 20px 32px;
   border-bottom: 1px solid #eef2f6;
   display: flex;
   justify-content: space-between;
@@ -219,8 +192,12 @@
   gap: 16px;
 }
 
+.topbar-left {
+  flex: 1;
+}
+
 .page-title {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   color: #1e293b;
   margin-bottom: 4px;
@@ -228,7 +205,7 @@
 
 .page-subtitle {
   color: #64748b;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .topbar-right {
@@ -261,30 +238,33 @@
   border-radius: 10px;
 }
 
+/* User Menu - Navbar */
 .user-menu {
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 6px 12px;
   border-radius: 12px;
   transition: background 0.3s ease;
+  background: #f8fafc;
+  border: 1px solid #eef2f6;
 }
 
 .user-menu:hover {
-  background: #f8fafc;
+  background: #f1f5f9;
 }
 
 .user-avatar {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   background: linear-gradient(135deg, #4361ee, #3b2f9e);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 18px;
+  font-size: 16px;
   color: white;
 }
 
@@ -296,11 +276,13 @@
   font-weight: 600;
   color: #1e293b;
   font-size: 14px;
+  margin: 0;
 }
 
-.user-role {
-  font-size: 12px;
+.user-email {
+  font-size: 11px;
   color: #64748b;
+  margin: 0;
 }
 
 /* Content Area */
@@ -342,14 +324,14 @@
 }
 
 .welcome-banner h1 {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 700;
   color: white;
   margin-bottom: 16px;
 }
 
 .welcome-banner p {
-  font-size: 18px;
+  font-size: 16px;
   color: rgba(255, 255, 255, 0.9);
   margin-bottom: 24px;
 }
@@ -361,7 +343,7 @@
   padding: 12px 24px;
   border-radius: 12px;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 14px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -388,7 +370,7 @@
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   margin-bottom: 32px;
 }
@@ -440,7 +422,7 @@
 }
 
 .section-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 20px;
@@ -485,14 +467,14 @@
 }
 
 .action-card h4 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 8px;
 }
 
 .action-card p {
-  font-size: 14px;
+  font-size: 13px;
   color: #64748b;
 }
 
@@ -518,6 +500,7 @@
   border: 1px solid #eef2f6;
   border-radius: 12px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .resume-item:hover {
@@ -532,14 +515,14 @@
 }
 
 .resume-info h4 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 4px;
 }
 
 .resume-info p {
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
 }
 
@@ -547,9 +530,40 @@
   padding: 4px 12px;
   background: #f8fafc;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 11px;
   color: #4361ee;
   font-weight: 500;
+}
+
+/* Empty resumes state */
+.empty-resumes {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.empty-resumes p {
+  color: #64748b;
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.create-resume-small-btn {
+  background: linear-gradient(135deg, #4361ee, #3b2f9e);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-resume-small-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
 
 /* Responsive Design */
@@ -599,7 +613,7 @@
   }
   
   .page-title {
-    font-size: 24px;
+    font-size: 20px;
   }
   
   .topbar-right {
@@ -611,11 +625,11 @@
   }
   
   .welcome-banner h1 {
-    font-size: 24px;
+    font-size: 22px;
   }
   
   .welcome-banner p {
-    font-size: 14px;
+    font-size: 13px;
   }
   
   .welcome-banner {
@@ -628,13 +642,18 @@
   }
   
   .user-info {
-    display: none;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .user-email {
+    display: block;
   }
 }
 
 @media (max-width: 480px) {
   .action-card h4 {
-    font-size: 16px;
+    font-size: 14px;
   }
   
   .resume-item {
@@ -646,64 +665,20 @@
   .resume-badge {
     align-self: flex-start;
   }
-}
-/* Additional styles for user email in navbar */
-.user-email {
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 2px;
-}
-
-/* Empty resumes state */
-.empty-resumes {
-  text-align: center;
-  padding: 40px 20px;
-  background: #f8fafc;
-  border-radius: 12px;
-}
-
-.empty-resumes p {
-  color: #64748b;
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
-.create-resume-small-btn {
-  background: linear-gradient(135deg, #4361ee, #3b2f9e);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.create-resume-small-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-}
-
-/* Ensure user info is visible on mobile */
-@media (max-width: 768px) {
+  
   .user-info {
-    display: flex;
-    flex-direction: column;
+    display: none;
   }
   
-  .user-email {
-    display: block;
+  .user-menu {
+    padding: 6px;
   }
-}
-
-/* Resume item hover effect enhancement */
-.resume-item {
-  cursor: pointer;
-}
-
-.resume-item:hover .resume-info h4 {
-  color: #4361ee;
+  
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
 }
 
 /* Animation for recent resumes section */

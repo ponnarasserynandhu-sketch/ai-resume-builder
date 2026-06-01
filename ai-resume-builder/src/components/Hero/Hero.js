@@ -67,8 +67,9 @@ function Hero() {
             </div>
             
             <h1 className="hero-title">
-              Build Your Future with
-              <span className="gradient-text"> AI-Powered Resumes</span>
+              Build Your Future with{" "}
+              <span className="highlight-text">AI-Powered</span>{" "}
+              <span className="highlight-text">Resumes</span>
             </h1>
             
             <p className="hero-description">
