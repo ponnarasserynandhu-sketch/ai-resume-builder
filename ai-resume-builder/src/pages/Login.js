@@ -19,12 +19,20 @@ function Login() {
     setLoading(true);
     setError("");
 
+    // Debug log to check API_URL
+    console.log("API_URL:", API_URL);
+    console.log("Login attempt with:", { email, showAdminLogin });
+
     try {
-      // Use the same login endpoint for both user and admin
-      const res = await axios.post(`${API_URL}/api/auth/login`, {
+      const endpoint = `${API_URL}/api/auth/login`;
+      console.log("Calling endpoint:", endpoint);
+
+      const res = await axios.post(endpoint, {
         email,
         password
       });
+
+      console.log("Response:", res.data);
 
       if (res.data.success) {
         const userRole = res.data.user.role;
@@ -50,7 +58,6 @@ function Login() {
           email: res.data.user.email,
           role: res.data.user.role
         }));
-        localStorage.setItem("userRole", res.data.user.role);
         
         // Redirect based on user role
         if (res.data.user.role === "admin") {
@@ -62,11 +69,25 @@ function Login() {
         setError(res.data.message || "Login failed");
       }
     } catch (err) {
-      console.log(err);
-      let errorMessage = err.response?.data?.message || "Server error";
+      console.error("Login error:", err);
+      console.error("Error response:", err.response);
+      
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      if (err.response) {
+        // Server responded with error
+        errorMessage = err.response.data?.message || `Server error: ${err.response.status}`;
+      } else if (err.request) {
+        // Request was made but no response
+        errorMessage = "Cannot connect to server. Please check your connection.";
+        console.error("No response received:", err.request);
+      } else {
+        // Something else happened
+        errorMessage = err.message || "An error occurred";
+      }
       
       // Custom error messages based on context
-      if (showAdminLogin) {
+      if (showAdminLogin && errorMessage.includes("Invalid credentials")) {
         errorMessage = "Invalid admin credentials.";
       }
       

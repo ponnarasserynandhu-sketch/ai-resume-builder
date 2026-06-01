@@ -126,33 +126,31 @@ const UserSchema = new mongoose.Schema({
   timestamps: true 
 });
 
-// IMPORTANT: Remove the pre-save password hashing since you're hashing in the auth route
-// This was causing the "next is not a function" error
-// UserSchema.pre("save", async function(next) { ... }) - REMOVED
+// REMOVE ALL pre('save') MIDDLEWARE - This is the key fix
+// Do not add any middleware here at all
 
-// Only keep the lastActive update middleware
-UserSchema.pre("save", function(next) {
-  // Only update lastActive if the document is being updated (not new) and not just a password update
-  if (!this.isNew && this.isModified() && !this.isModified("password")) {
-    this.lastActive = new Date();
-  }
-  next();
-});
-
-// Compare password method (for use if needed)
+// Compare password method
 UserSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Update last login method
+// Update last login - Use findByIdAndUpdate to avoid any middleware
 UserSchema.methods.updateLastLogin = async function() {
-  this.lastLogin = new Date();
-  this.loginCount += 1;
-  this.lastActive = new Date();
-  return await this.save();
+  const User = mongoose.model("User");
+  return await User.findByIdAndUpdate(
+    this._id,
+    { 
+      $set: { 
+        lastLogin: new Date(),
+        lastActive: new Date()
+      },
+      $inc: { loginCount: 1 }
+    },
+    { new: true }
+  );
 };
 
-// Get public profile (exclude sensitive data)
+// Get public profile
 UserSchema.methods.getPublicProfile = function() {
   return {
     id: this._id,
@@ -180,18 +178,34 @@ UserSchema.methods.isActive = function() {
 
 // Soft delete user
 UserSchema.methods.softDelete = async function(deletedBy) {
-  this.status = "inactive";
-  this.deletedAt = new Date();
-  this.deletedBy = deletedBy;
-  return await this.save();
+  const User = mongoose.model("User");
+  return await User.findByIdAndUpdate(
+    this._id,
+    {
+      $set: {
+        status: "inactive",
+        deletedAt: new Date(),
+        deletedBy: deletedBy
+      }
+    },
+    { new: true }
+  );
 };
 
 // Restore soft deleted user
 UserSchema.methods.restore = async function() {
-  this.status = "active";
-  this.deletedAt = null;
-  this.deletedBy = null;
-  return await this.save();
+  const User = mongoose.model("User");
+  return await User.findByIdAndUpdate(
+    this._id,
+    {
+      $set: {
+        status: "active",
+        deletedAt: null,
+        deletedBy: null
+      }
+    },
+    { new: true }
+  );
 };
 
 // Static method to get active users count
