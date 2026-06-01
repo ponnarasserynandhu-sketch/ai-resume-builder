@@ -26,4 +26,6 @@ server/node_modules
 server/package-lock.json
 
 # Environment files
-.env
+.env.env
+.env.production
+.env.local
