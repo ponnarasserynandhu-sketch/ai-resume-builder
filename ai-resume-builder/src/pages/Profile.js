@@ -273,29 +273,59 @@ function Profile() {
     }
   };
 
-  // EXPERIENCE BUTTON
+  // EXPERIENCE BUTTON - FIXED VERSION
   const improveExperience = async () => {
+    // Check if user has entered any experience text
+    if (!user.experience || user.experience.trim() === "") {
+      alert("Please enter some experience details first. The AI needs something to improve!");
+      return;
+    }
+
     setAiLoading(prev => ({ ...prev, experience: true }));
+    
     try {
       const res = await axios.post(`${API_URL}/api/ai/experience`, {
         experience: user.experience,
+        role: user.role,           // ADDED - send the user's job role
+        skills: user.skills,       // ADDED - send skills for context
+        name: user.name            // ADDED - send user's name for personalization
       });
 
       console.log("EXPERIENCE RESPONSE:", res.data);
 
       if (res.data.success) {
-        setUser(prev => ({
-          ...prev,
-          experience: res.data.improved,
-        }));
-        setSaveStatus("success");
-        setTimeout(() => setSaveStatus(null), 2000);
+        // Handle different possible response formats
+        const improvedText = res.data.improved || res.data.experience || res.data.result;
+        if (improvedText) {
+          setUser(prev => ({
+            ...prev,
+            experience: improvedText,
+          }));
+          setSaveStatus("success");
+          setTimeout(() => setSaveStatus(null), 2000);
+        } else {
+          alert("AI response was empty. Please try again.");
+        }
       } else {
-        alert("AI failed: " + res.data.message);
+        alert("AI failed: " + (res.data.message || "Please check your input"));
       }
     } catch (err) {
       console.log("EXPERIENCE ERROR:", err);
-      alert("Error improving experience");
+      console.log("Server response:", err.response?.data);
+      
+      // Show user-friendly error message
+      if (err.response?.status === 400) {
+        const errorMsg = err.response?.data?.message || err.response?.data?.error || "Invalid request. Please ensure you have entered experience details.";
+        alert(errorMsg);
+      } else if (err.response?.status === 401) {
+        alert("Session expired. Please login again.");
+      } else if (err.response?.status === 500) {
+        alert("Server error. Please try again later.");
+      } else if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
+        alert("Network error. Please check your internet connection.");
+      } else {
+        alert("Error improving experience. Please try again.");
+      }
     } finally {
       setAiLoading(prev => ({ ...prev, experience: false }));
     }
