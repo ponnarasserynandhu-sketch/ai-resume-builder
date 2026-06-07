@@ -1,12 +1,11 @@
 // src/config.js
 
-// Get the backend URL based on environment
 const getBackendURL = () => {
-  // Production - Use your actual Render backend URL
+  // For production, use environment variable (set in Vercel)
   if (process.env.NODE_ENV === 'production') {
-    return 'https://ai-resume-builder-rlwj.onrender.com';  // ← YOUR ACTUAL BACKEND URL
+    // You can either hardcode or use REACT_APP_API_URL
+    return process.env.REACT_APP_API_URL || 'https://ai-resume-builder-rlwj.onrender.com';
   }
-  
   // Development
   return 'http://localhost:5000';
 };
