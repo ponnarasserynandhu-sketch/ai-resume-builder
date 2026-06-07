@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import axios from "axios";
 import API_URL from '../config';
 import "./Login.css";
+import { Link, useNavigate } from "react-router-dom";
 import { FiMail, FiLock, FiArrowRight, FiEye, FiEyeOff, FiShield } from "react-icons/fi";
 
 function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -251,7 +253,9 @@ function Login() {
                   <input type="checkbox" />
                   <span>Remember me</span>
                 </label>
-                <a href="/forgot-password" className="forgot-link">Forgot password?</a>
+                <Link to="/forgot-password" className="forgot-link">
+                  Forgot password?
+                </Link>
               </div>
             )}
 
@@ -271,7 +275,7 @@ function Login() {
 
             {!showAdminLogin && (
               <div className="login-link">
-                <p>Don't have an account? <a href="/signup">Create account</a></p>
+                <p>Don't have an account? <Link to="/signup">Create account</Link></p>
               </div>
             )}
           </form>

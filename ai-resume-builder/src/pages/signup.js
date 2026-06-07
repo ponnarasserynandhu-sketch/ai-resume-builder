@@ -13,7 +13,8 @@ import {
   FiCpu,
   FiTrendingUp,
   FiAward,
-  FiStar
+  FiStar,
+  FiCheckCircle
 } from "react-icons/fi";
 
 function Signup() {
@@ -22,10 +23,12 @@ function Signup() {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    password: ""
+    password: "",
+    confirmPassword: ""
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [passwordStrength, setPasswordStrength] = useState(0);
@@ -53,6 +56,12 @@ function Signup() {
       newErrors.password = "Password must be at least 6 characters";
     }
 
+    if (!form.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -72,67 +81,22 @@ function Signup() {
     const newPassword = e.target.value;
     setForm({ ...form, password: newPassword });
     checkPasswordStrength(newPassword);
-  };
-
-  // Submit handler - Using API_URL
-  const submit = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-
-    try {
-      // Using API_URL for dynamic backend URL
-      const response = await fetch(`${API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password
-        }),
-      });
-
-      const data = await response.json();
-      console.log("Signup response:", data);
-
-      if (data.success) {
-        // Store token and user data
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        
-        // Show success message
-        const successMessage = document.createElement("div");
-        successMessage.className = "success-toast";
-        successMessage.innerHTML = "✨ Account created successfully! Redirecting...";
-        document.body.appendChild(successMessage);
-
-        setTimeout(() => {
-          successMessage.remove();
-          navigate("/dashboard");
-        }, 1500);
-      } else {
-        throw new Error(data.message || "Signup failed");
-      }
-    } catch (error) {
-      console.error("Signup error:", error);
-      const errorMessage = document.createElement("div");
-      errorMessage.className = "error-toast";
-      errorMessage.innerHTML = error.message || "Signup failed. Please try again.";
-      document.body.appendChild(errorMessage);
-
-      setTimeout(() => {
-        errorMessage.remove();
-      }, 3000);
-    } finally {
-      setIsLoading(false);
+    // Clear confirm password error when password changes
+    if (errors.confirmPassword) {
+      setErrors({ ...errors, confirmPassword: "" });
     }
   };
 
-  // Password strength indicators
+  const handleConfirmPasswordChange = (e) => {
+    const newConfirmPassword = e.target.value;
+    setForm({ ...form, confirmPassword: newConfirmPassword });
+    // Clear confirm password error
+    if (errors.confirmPassword) {
+      setErrors({ ...errors, confirmPassword: "" });
+    }
+  };
+
+  // Get password strength text and color
   const getPasswordStrengthText = () => {
     if (passwordStrength === 0) return "Very Weak";
     if (passwordStrength === 1) return "Weak";
@@ -147,6 +111,53 @@ function Signup() {
     if (passwordStrength === 2) return "#eab308";
     if (passwordStrength === 3) return "#06d6a0";
     return "#10b981";
+  };
+
+  // Submit handler - Navigate to login page on success
+  const submit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/api/auth/register`, {
+        name: form.name,
+        email: form.email,
+        password: form.password
+      });
+
+      console.log("Signup response:", response.data);
+
+      if (response.data.success) {
+        // Show success message
+        const successMessage = document.createElement("div");
+        successMessage.className = "success-toast";
+        successMessage.innerHTML = "✨ Account created successfully! Redirecting to login...";
+        document.body.appendChild(successMessage);
+
+        setTimeout(() => {
+          successMessage.remove();
+          // Navigate to login page instead of dashboard
+          navigate("/login");
+        }, 1500);
+      } else {
+        throw new Error(response.data.message || "Signup failed");
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      const errorMessage = document.createElement("div");
+      errorMessage.className = "error-toast";
+      errorMessage.innerHTML = error.response?.data?.message || error.message || "Signup failed. Please try again.";
+      document.body.appendChild(errorMessage);
+
+      setTimeout(() => {
+        errorMessage.remove();
+      }, 3000);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const features = [
@@ -206,6 +217,7 @@ function Signup() {
         <div className="form-wrapper">
           <div className="form-header">
             <h2>Create an Account</h2>
+            <p>Join us and start building your professional career</p>
           </div>
 
           <form className="signup-form" onSubmit={submit}>
@@ -289,6 +301,35 @@ function Signup() {
               )}
               
               {errors.password && <span className="error-message">{errors.password}</span>}
+            </div>
+
+            {/* Confirm Password Field */}
+            <div className="input-group">
+              <label>
+                <FiCheckCircle size={16} />
+                Confirm Password
+              </label>
+              <div className={`input-field ${focusedField === "confirmPassword" ? "focused" : ""} ${errors.confirmPassword ? "error" : ""}`}>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  value={form.confirmPassword}
+                  onFocus={() => setFocusedField("confirmPassword")}
+                  onBlur={() => setFocusedField(null)}
+                  onChange={handleConfirmPasswordChange}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
+              {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+              {form.confirmPassword && form.password === form.confirmPassword && form.password && (
+                <span className="success-message-text">✓ Passwords match</span>
+              )}
             </div>
 
             {/* Submit Button */}

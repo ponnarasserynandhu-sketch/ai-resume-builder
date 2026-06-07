@@ -23,7 +23,7 @@ directories.forEach(dir => {
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
-  "https://ai-resume-builder-zeta-dusky.vercel.app",  // ← ADD YOUR SPECIFIC URL
+  "https://ai-resume-builder-zeta-dusky.vercel.app",
   "https://ai-resume-builder.vercel.app",
   "https://ai-resume-builder.netlify.app",
   process.env.FRONTEND_URL
@@ -33,7 +33,6 @@ console.log("🔧 Allowed CORS origins:", allowedOrigins);
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl)
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -59,7 +58,8 @@ app.get("/health", (req, res) => {
     status: "healthy",
     timestamp: new Date().toISOString(),
     mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-    environment: process.env.NODE_ENV || "development"
+    environment: process.env.NODE_ENV || "development",
+    emailConfigured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS)
   });
 });
 
@@ -154,7 +154,6 @@ try {
 
 // ==================== SERVE FRONTEND (Production) ====================
 if (process.env.NODE_ENV === "production") {
-  // Serve static files from the React frontend build
   const frontendBuildPath = path.join(__dirname, "../build");
   if (fs.existsSync(frontendBuildPath)) {
     app.use(express.static(frontendBuildPath));
@@ -208,10 +207,14 @@ function startServer() {
   app.listen(PORT, () => {
     console.log(`\n🚀 Server running on port ${PORT}`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`📧 Email Service: ${process.env.EMAIL_USER ? "Configured ✅" : "Not Configured ⚠️"}`);
     console.log(`\n📋 Available Endpoints:`);
     console.log(`\n🔐 Auth & User:`);
     console.log(`   POST /api/auth/login - User login`);
     console.log(`   POST /api/auth/register - User register`);
+    console.log(`   POST /api/auth/forgot-password - Request password reset`);
+    console.log(`   POST /api/auth/reset-password - Reset password with token`);
+    console.log(`   POST /api/auth/verify-reset-token - Verify reset token`);
     console.log(`   GET  /api/user/me - Get current user`);
     console.log(`\n🤖 AI Routes:`);
     console.log(`   POST /api/ai/summary - AI Summary`);

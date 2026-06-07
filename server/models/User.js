@@ -40,6 +40,16 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // PASSWORD RESET FIELDS - Updated for consistency with frontend
+  resetPasswordToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpires: {
+    type: Date,
+    default: null
+  },
+  // Keep both for backward compatibility
   passwordResetToken: {
     type: String,
     default: null
