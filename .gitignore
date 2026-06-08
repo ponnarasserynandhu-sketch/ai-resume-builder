@@ -44,3 +44,6 @@ ai-resume-builder/node_modules/
 .env
 .env.production
 .env.local
+
+.vercel
+.env*
