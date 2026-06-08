@@ -6,45 +6,40 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const logActivity = require("../middleware/activityLogger");
 
-// ==================== EMAIL CONFIGURATION ====================
+// ==================== EMAIL CONFIGURATION (Brevo SMTP) ====================
 const nodemailer = require("nodemailer");
 
-// Configure email transporter based on service type
 let emailTransporter;
 
-if (process.env.EMAIL_SERVICE === "sendgrid") {
+if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS) {
   emailTransporter = nodemailer.createTransport({
-    host: 'smtp.sendgrid.net',
-    port: 587,
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT),
+    secure: false, // false for port 587, true for 465
     auth: {
-      user: 'apikey',
-      pass: process.env.EMAIL_PASS
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
     }
   });
-  console.log("📧 Using SendGrid email service");
-} else if (process.env.EMAIL_SERVICE === "ethereal") {
-  emailTransporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-  console.log("📧 Using Ethereal email service (testing)");
+  console.log("📧 Using Brevo SMTP email service");
 } else {
-  emailTransporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-  console.log("📧 Using Gmail email service");
+  console.warn("⚠️ Brevo SMTP credentials not configured. Password reset will not work.");
+  // Optional fallback for local testing (ethereal)
+  if (process.env.NODE_ENV !== "production") {
+    emailTransporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      auth: {
+        user: process.env.ETHEREAL_USER || 'test',
+        pass: process.env.ETHEREAL_PASS || 'test'
+      }
+    });
+    console.log("📧 Using Ethereal email service (testing only)");
+  }
 }
 
 // Verify email configuration
-if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+if (emailTransporter) {
   emailTransporter.verify((error, success) => {
     if (error) {
       console.error("❌ Email transporter error:", error.message);
@@ -52,12 +47,14 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       console.log("✅ Email server is ready");
     }
   });
-} else {
-  console.warn("⚠️ Email credentials not configured");
 }
 
-// IMPROVED: Function to send reset email with plain text version
+// Function to send reset email
 const sendResetEmail = async (email, resetToken, baseUrl) => {
+  if (!emailTransporter) {
+    throw new Error("Email transporter not configured");
+  }
+
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   
   // Plain text version (important for avoiding spam filters)
@@ -80,7 +77,7 @@ AI Resume Builder Team
 `;
 
   const mailOptions = {
-    from: `"AI Resume Builder" <${process.env.EMAIL_USER}>`,
+    from: process.env.SMTP_FROM || `"AI Resume Builder" <${process.env.SMTP_USER}>`,
     to: email,
     subject: 'Reset Your AI Resume Builder Password',
     text: textContent,
@@ -249,7 +246,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ==================== FORGOT PASSWORD - IMPROVED ====================
+// ==================== FORGOT PASSWORD ====================
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
@@ -303,16 +300,8 @@ router.post("/forgot-password", async (req, res) => {
       const result = await sendResetEmail(email, resetToken, baseUrl);
       console.log(`✅ Email SENT successfully to: ${email}`);
       console.log(`📧 Message ID: ${result.messageId}`);
-      console.log(`📧 From: ${process.env.EMAIL_USER}`);
-      console.log(`📧 To: ${email}`);
-      
-      // For Ethereal, show preview URL
-      if (process.env.EMAIL_SERVICE === "ethereal") {
-        console.log(`📧 Preview: ${nodemailer.getTestMessageUrl(result)}`);
-      }
     } catch (emailError) {
       console.error(`❌ Email sending FAILED: ${emailError.message}`);
-      console.error(`Error details:`, emailError);
     }
 
     res.json({ 
