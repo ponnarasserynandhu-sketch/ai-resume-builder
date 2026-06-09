@@ -12,23 +12,16 @@ const nodemailer = require("nodemailer");
 let emailTransporter;
 
 if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS) {
-  const port = parseInt(process.env.SMTP_PORT);
-  // Use secure: true for port 465, false for 587 (STARTTLS)
-  const isSecure = port === 465;
-  
   emailTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: port,
-    secure: isSecure,
+    port: parseInt(process.env.SMTP_PORT),
+    secure: false, // false for port 587, true for 465
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
-    },
-    timeout: 15000,           // 15 seconds
-    connectionTimeout: 15000, // 15 seconds
-    socketTimeout: 15000      // 15 seconds
+    }
   });
-  console.log(`📧 Using Brevo SMTP email service on port ${port} (secure: ${isSecure})`);
+  console.log("📧 Using Brevo SMTP email service");
 } else {
   console.warn("⚠️ Brevo SMTP credentials not configured. Password reset will not work.");
   // Optional fallback for local testing (ethereal)
@@ -36,7 +29,6 @@ if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && p
     emailTransporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
-      secure: false,
       auth: {
         user: process.env.ETHEREAL_USER || 'test',
         pass: process.env.ETHEREAL_PASS || 'test'
@@ -55,8 +47,6 @@ if (emailTransporter) {
       console.log("✅ Email server is ready");
     }
   });
-} else {
-  console.error("❌ No email transporter configured");
 }
 
 // Function to send reset email
@@ -67,7 +57,7 @@ const sendResetEmail = async (email, resetToken, baseUrl) => {
 
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   
-  // Plain text version
+  // Plain text version (important for avoiding spam filters)
   const textContent = `
 PASSWORD RESET REQUEST - AI RESUME BUILDER
 
@@ -312,7 +302,6 @@ router.post("/forgot-password", async (req, res) => {
       console.log(`📧 Message ID: ${result.messageId}`);
     } catch (emailError) {
       console.error(`❌ Email sending FAILED: ${emailError.message}`);
-      // Don't expose error to client for security
     }
 
     res.json({ 
