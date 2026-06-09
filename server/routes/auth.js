@@ -12,19 +12,27 @@ const nodemailer = require("nodemailer");
 let emailTransporter;
 
 if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS) {
+  const port = parseInt(process.env.SMTP_PORT);
   emailTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT),
-    secure: false, // false for port 587, true for 465
+    port: port,
+    secure: port === 465, // true for 465, false for 587
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
-    }
+    },
+    // Timeouts to avoid hanging on Render
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+    // Connection pooling
+    pool: true,
+    maxConnections: 5,
+    rateLimit: 5
   });
-  console.log("📧 Using Brevo SMTP email service");
+  console.log("📧 Using Brevo SMTP email service with timeouts");
 } else {
   console.warn("⚠️ Brevo SMTP credentials not configured. Password reset will not work.");
-  // Optional fallback for local testing (ethereal)
   if (process.env.NODE_ENV !== "production") {
     emailTransporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
@@ -49,15 +57,14 @@ if (emailTransporter) {
   });
 }
 
-// Function to send reset email
-const sendResetEmail = async (email, resetToken, baseUrl) => {
+// Function to send reset email with retry logic
+const sendResetEmail = async (email, resetToken, baseUrl, retries = 2) => {
   if (!emailTransporter) {
     throw new Error("Email transporter not configured");
   }
 
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   
-  // Plain text version (important for avoiding spam filters)
   const textContent = `
 PASSWORD RESET REQUEST - AI RESUME BUILDER
 
@@ -131,8 +138,44 @@ AI Resume Builder Team
     `
   };
 
-  return await emailTransporter.sendMail(mailOptions);
+  try {
+    return await emailTransporter.sendMail(mailOptions);
+  } catch (error) {
+    if (retries > 0 && (error.message.includes('timeout') || error.message.includes('socket'))) {
+      console.log(`🔄 Retrying email to ${email}... (${retries} attempts left)`);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return sendResetEmail(email, resetToken, baseUrl, retries - 1);
+    }
+    throw error;
+  }
 };
+
+// ==================== TEST SMTP CONNECTIVITY (Temporary) ====================
+router.get("/test-smtp", async (req, res) => {
+  const net = require('net');
+  const host = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
+  const port = parseInt(process.env.SMTP_PORT) || 587;
+  
+  const socket = new net.Socket();
+  socket.setTimeout(5000);
+  
+  socket.on('connect', () => {
+    socket.destroy();
+    res.json({ success: true, message: `Successfully connected to ${host}:${port}` });
+  });
+  
+  socket.on('timeout', () => {
+    socket.destroy();
+    res.json({ success: false, message: `Connection timeout to ${host}:${port}` });
+  });
+  
+  socket.on('error', (err) => {
+    socket.destroy();
+    res.json({ success: false, message: `Connection error: ${err.message}` });
+  });
+  
+  socket.connect(port, host);
+});
 
 // REGISTER
 router.post("/register", async (req, res) => {
