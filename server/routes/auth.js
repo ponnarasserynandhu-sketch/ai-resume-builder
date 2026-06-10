@@ -60,7 +60,7 @@ AI Resume Builder Team
       {
         sender: {
           name: "AI Resume Builder",
-          email: "nandhugirish9104@gmail.com", // Must be verified in Brevo
+          email: "nandhugirish9104@gmail.com",
         },
         to: [{ email }],
         subject: "Reset Your AI Resume Builder Password",
@@ -89,7 +89,7 @@ if (process.env.BREVO_API_KEY) {
   console.warn("⚠️ BREVO_API_KEY missing – password reset emails will fail");
 }
 
-// REGISTER
+// ==================== REGISTER (Users only) ====================
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -103,7 +103,7 @@ router.post("/register", async (req, res) => {
       name, 
       email, 
       password: hashed,
-      role: "user",
+      role: "user",        // Force role to "user"
       status: "active",
       lastActive: new Date()
     });
@@ -133,12 +133,12 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// LOGIN
+// ==================== USER LOGIN (excludes admin accounts) ====================
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log("Login attempt:", email);
+    console.log("User login attempt:", email);
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -146,7 +146,14 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid email or password" });
     }
 
-    console.log("User found:", user.email, "Role:", user.role, "Status:", user.status);
+    // Prevent admin from logging in via user endpoint
+    if (user.role === "admin") {
+      console.log("Admin attempted user login:", email);
+      return res.status(401).json({ 
+        success: false, 
+        message: "This is an admin account. Please use Admin Login." 
+      });
+    }
 
     if (user.status === "blocked") {
       console.log("User blocked:", email);
@@ -181,7 +188,7 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    console.log("Login successful:", email, "Role:", user.role);
+    console.log("User login successful:", email);
 
     res.json({ 
       success: true, 
@@ -197,6 +204,76 @@ router.post("/login", async (req, res) => {
 
   } catch (err) {
     console.error("Login error:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// ==================== ADMIN LOGIN (Hardcoded via .env - NO DATABASE) ====================
+router.post("/admin-login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    console.log("Admin login attempt (hardcoded):", email);
+
+    // Get admin credentials from environment variables
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+    const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
+
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD_HASH) {
+      console.error("ADMIN_EMAIL or ADMIN_PASSWORD_HASH not set in .env");
+      return res.status(500).json({ 
+        success: false, 
+        message: "Admin login not configured. Please contact support." 
+      });
+    }
+
+    // Check email
+    if (email !== ADMIN_EMAIL) {
+      console.log("Admin email mismatch");
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid admin credentials" 
+      });
+    }
+
+    // Check password using bcrypt
+    const isMatch = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
+    if (!isMatch) {
+      console.log("Admin password mismatch");
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid admin credentials" 
+      });
+    }
+
+    // Generate JWT token (no database user ID, use fixed admin ID)
+    const token = jwt.sign(
+      { 
+        id: "admin_hardcoded", 
+        email: ADMIN_EMAIL, 
+        role: "admin",
+        isHardcoded: true 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    console.log("Admin login successful (hardcoded):", email);
+
+    res.json({ 
+      success: true, 
+      token,
+      user: {
+        id: "admin_hardcoded",
+        name: "Administrator",
+        email: ADMIN_EMAIL,
+        role: "admin",
+        status: "active"
+      }
+    });
+
+  } catch (err) {
+    console.error("Admin login error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
@@ -235,7 +312,6 @@ router.post("/forgot-password", async (req, res) => {
       });
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString("hex");
     
     user.resetPasswordToken = resetToken;
@@ -246,7 +322,6 @@ router.post("/forgot-password", async (req, res) => {
     await user.save();
     console.log(`✅ Reset token generated and saved`);
 
-    // Send email
     const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
     const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
     console.log(`🔗 Reset link: ${resetUrl}`);
@@ -378,58 +453,7 @@ router.post("/verify-reset-token", async (req, res) => {
   }
 });
 
-// TEMPORARY ROUTE - CREATE ADMIN
-router.post("/create-admin", async (req, res) => {
-  try {
-    const existingAdmin = await User.findOne({ email: "admin@example.com" });
-    if (existingAdmin) {
-      return res.json({ 
-        success: false, 
-        message: "Admin already exists",
-        credentials: {
-          email: "admin@example.com",
-          password: "Admin@123"
-        }
-      });
-    }
-    
-    const hashedPassword = await bcrypt.hash("Admin@123", 10);
-    
-    const admin = new User({
-      name: "Super Admin",
-      email: "admin@example.com",
-      password: hashedPassword,
-      role: "admin",
-      status: "active",
-      lastActive: new Date()
-    });
-    
-    await admin.save();
-    
-    console.log("✅ Admin user created successfully!");
-    
-    res.json({ 
-      success: true, 
-      message: "Admin created successfully!",
-      credentials: {
-        email: "admin@example.com",
-        password: "Admin@123"
-      },
-      user: {
-        id: admin._id,
-        name: admin.name,
-        email: admin.email,
-        role: admin.role,
-        status: admin.status
-      }
-    });
-  } catch (err) {
-    console.error("Error creating admin:", err);
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// GET CURRENT USER
+// ==================== GET CURRENT USER ====================
 router.get("/me", async (req, res) => {
   try {
     const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -438,6 +462,21 @@ router.get("/me", async (req, res) => {
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Check if it's the hardcoded admin
+    if (decoded.id === "admin_hardcoded" && decoded.role === "admin") {
+      return res.json({ 
+        success: true, 
+        user: {
+          id: "admin_hardcoded",
+          name: "Administrator",
+          email: decoded.email,
+          role: "admin",
+          status: "active"
+        }
+      });
+    }
+    
     const user = await User.findById(decoded.id).select("-password");
     
     if (!user) {

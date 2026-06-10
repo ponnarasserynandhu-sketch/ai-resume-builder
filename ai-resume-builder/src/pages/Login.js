@@ -21,48 +21,35 @@ function Login() {
     setLoading(true);
     setError("");
 
-    // Debug log to check API_URL
-    console.log("API_URL:", API_URL);
-    console.log("Login attempt with:", { email, showAdminLogin });
-
     try {
-      const endpoint = `${API_URL}/api/auth/login`;
-      console.log("Calling endpoint:", endpoint);
+      // Choose endpoint based on admin/user toggle
+      const endpoint = showAdminLogin
+        ? `${API_URL}/api/auth/admin-login`
+        : `${API_URL}/api/auth/login`;
 
-      const res = await axios.post(endpoint, {
-        email,
-        password
-      });
-
-      console.log("Response:", res.data);
+      const res = await axios.post(endpoint, { email, password });
 
       if (res.data.success) {
         const userRole = res.data.user.role;
-        
-        // Check if trying to login as admin but user is not admin
+
+        // Extra safety: if admin endpoint returned non-admin role, reject
         if (showAdminLogin && userRole !== "admin") {
           setError("Invalid admin credentials. Please use admin login.");
           setLoading(false);
           return;
         }
-        
-        // Check if trying to login as user but user is admin
-        if (!showAdminLogin && userRole === "admin") {
-          setError("This is an admin account. Please use Admin Login tab.");
-          setLoading(false);
-          return;
-        }
 
+        // Save tokens and user data
         localStorage.setItem("token", res.data.token);
-        localStorage.setItem("userRole", res.data.user.role);
+        localStorage.setItem("userRole", userRole);
         localStorage.setItem("user", JSON.stringify({
           name: res.data.user.name,
           email: res.data.user.email,
-          role: res.data.user.role
+          role: userRole
         }));
-        
-        // Redirect based on user role
-        if (res.data.user.role === "admin") {
+
+        // Redirect based on role
+        if (userRole === "admin") {
           window.location.href = "/admin-dashboard";
         } else {
           window.location.href = "/dashboard";
@@ -72,27 +59,23 @@ function Login() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      console.error("Error response:", err.response);
-      
+
       let errorMessage = "Something went wrong. Please try again.";
-      
+
       if (err.response) {
-        // Server responded with error
+        // Server responded with error status
         errorMessage = err.response.data?.message || `Server error: ${err.response.status}`;
       } else if (err.request) {
-        // Request was made but no response
         errorMessage = "Cannot connect to server. Please check your connection.";
-        console.error("No response received:", err.request);
       } else {
-        // Something else happened
         errorMessage = err.message || "An error occurred";
       }
-      
-      // Custom error messages based on context
-      if (showAdminLogin && errorMessage.includes("Invalid credentials")) {
-        errorMessage = "Invalid admin credentials.";
+
+      // Custom messages for admin login failure
+      if (showAdminLogin && errorMessage.toLowerCase().includes("credentials")) {
+        errorMessage = "Invalid admin credentials. Access denied.";
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -105,6 +88,7 @@ function Login() {
     setEmail("");
     setPassword("");
     setError("");
+    setLoading(false); // reset loading state
     setEmailFocused(false);
     setPasswordFocused(false);
   };
@@ -211,6 +195,7 @@ function Login() {
                   placeholder={showAdminLogin ? "admin@example.com" : "name@company.com"}
                   required
                   disabled={loading}
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -230,11 +215,13 @@ function Login() {
                   placeholder={showAdminLogin ? "Enter admin password" : "Enter your password"}
                   required
                   disabled={loading}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label="Toggle password visibility"
                 >
                   {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
