@@ -3,68 +3,19 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const axios = require("axios");
 const User = require("../models/User");
 const logActivity = require("../middleware/activityLogger");
 
-// ==================== EMAIL CONFIGURATION (Brevo SMTP) ====================
-const nodemailer = require("nodemailer");
-
-let emailTransporter;
-
-if (process.env.SMTP_HOST && process.env.SMTP_PORT && process.env.SMTP_USER && process.env.SMTP_PASS) {
-  const port = parseInt(process.env.SMTP_PORT);
-  emailTransporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: port,
-    secure: port === 465, // true for 465, false for 587
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    },
-    // Timeouts to avoid hanging on Render
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    // Connection pooling
-    pool: true,
-    maxConnections: 5,
-    rateLimit: 5
-  });
-  console.log("📧 Using Brevo SMTP email service with timeouts");
-} else {
-  console.warn("⚠️ Brevo SMTP credentials not configured. Password reset will not work.");
-  if (process.env.NODE_ENV !== "production") {
-    emailTransporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      auth: {
-        user: process.env.ETHEREAL_USER || 'test',
-        pass: process.env.ETHEREAL_PASS || 'test'
-      }
-    });
-    console.log("📧 Using Ethereal email service (testing only)");
-  }
-}
-
-// Verify email configuration
-if (emailTransporter) {
-  emailTransporter.verify((error, success) => {
-    if (error) {
-      console.error("❌ Email transporter error:", error.message);
-    } else {
-      console.log("✅ Email server is ready");
-    }
-  });
-}
-
-// Function to send reset email with retry logic
-const sendResetEmail = async (email, resetToken, baseUrl, retries = 2) => {
-  if (!emailTransporter) {
-    throw new Error("Email transporter not configured");
-  }
-
+// ==================== EMAIL CONFIGURATION (Brevo HTTP API) ====================
+const sendResetEmail = async (email, resetToken, baseUrl) => {
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) {
+    throw new Error("BREVO_API_KEY is not configured. Please add it to .env");
+  }
+
   const textContent = `
 PASSWORD RESET REQUEST - AI RESUME BUILDER
 
@@ -83,99 +34,60 @@ Best regards,
 AI Resume Builder Team
 `;
 
-  const mailOptions = {
-    from: process.env.SMTP_FROM || `"AI Resume Builder" <${process.env.SMTP_USER}>`,
-    to: email,
-    subject: 'Reset Your AI Resume Builder Password',
-    text: textContent,
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Password Reset</title>
-      </head>
-      <body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f7fb;">
-        <div style="max-width: 500px; margin: 0 auto; background: white; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #6366f1; margin: 0;">AI Resume Builder</h1>
-          </div>
-          
-          <h2 style="color: #1e293b; margin-bottom: 20px;">Reset Your Password</h2>
-          
-          <p style="color: #475569; line-height: 1.6; margin-bottom: 20px;">
-            Hello,
-          </p>
-          
-          <p style="color: #475569; line-height: 1.6; margin-bottom: 20px;">
-            We received a request to reset the password for your account. Click the button below to create a new password:
-          </p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetUrl}" 
-               style="display: inline-block; background: #6366f1; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: 600;">
-              Reset Password
-            </a>
-          </div>
-          
-          <p style="color: #64748b; font-size: 14px; margin: 20px 0;">
-            Or copy this link: <br>
-            <span style="color: #6366f1; word-break: break-all;">${resetUrl}</span>
-          </p>
-          
-          <div style="background: #fef2f2; padding: 12px; border-radius: 6px; margin: 20px 0; border-left: 3px solid #ef4444;">
-            <p style="color: #dc2626; font-size: 13px; margin: 0;">
-              ⏰ This link expires in 1 hour
-            </p>
-          </div>
-          
-          <p style="color: #94a3b8; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-            If you didn't request this, please ignore this email.
-          </p>
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head><meta charset="UTF-8"><title>Password Reset</title></head>
+    <body style="font-family: Arial, sans-serif; margin:0; padding:20px; background:#f4f7fb;">
+      <div style="max-width:500px; margin:0 auto; background:white; border-radius:10px; padding:30px;">
+        <h1 style="color:#6366f1; margin-top:0;">AI Resume Builder</h1>
+        <p>Hello,</p>
+        <p>We received a request to reset your password. Click the button below:</p>
+        <div style="text-align:center; margin:30px 0;">
+          <a href="${resetUrl}" style="background:#6366f1; color:white; padding:12px 28px; text-decoration:none; border-radius:6px;">Reset Password</a>
         </div>
-      </body>
-      </html>
-    `
-  };
+        <p>Or copy this link: <br><span style="color:#6366f1;">${resetUrl}</span></p>
+        <p style="color:#dc2626;">⏰ Link expires in 1 hour.</p>
+        <p>If you didn't request this, ignore this email.</p>
+      </div>
+    </body>
+    </html>
+  `;
 
   try {
-    return await emailTransporter.sendMail(mailOptions);
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "AI Resume Builder",
+          email: "nandhugirish9104@gmail.com", // Must be verified in Brevo
+        },
+        to: [{ email }],
+        subject: "Reset Your AI Resume Builder Password",
+        htmlContent,
+        textContent,
+      },
+      {
+        headers: {
+          "api-key": apiKey,
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      }
+    );
+    return response.data;
   } catch (error) {
-    if (retries > 0 && (error.message.includes('timeout') || error.message.includes('socket'))) {
-      console.log(`🔄 Retrying email to ${email}... (${retries} attempts left)`);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return sendResetEmail(email, resetToken, baseUrl, retries - 1);
-    }
+    console.error("Brevo API error details:", error.response?.data || error.message);
     throw error;
   }
 };
 
-// ==================== TEST SMTP CONNECTIVITY (Temporary) ====================
-router.get("/test-smtp", async (req, res) => {
-  const net = require('net');
-  const host = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
-  const port = parseInt(process.env.SMTP_PORT) || 587;
-  
-  const socket = new net.Socket();
-  socket.setTimeout(5000);
-  
-  socket.on('connect', () => {
-    socket.destroy();
-    res.json({ success: true, message: `Successfully connected to ${host}:${port}` });
-  });
-  
-  socket.on('timeout', () => {
-    socket.destroy();
-    res.json({ success: false, message: `Connection timeout to ${host}:${port}` });
-  });
-  
-  socket.on('error', (err) => {
-    socket.destroy();
-    res.json({ success: false, message: `Connection error: ${err.message}` });
-  });
-  
-  socket.connect(port, host);
-});
+// Check API key on startup
+if (process.env.BREVO_API_KEY) {
+  console.log("✅ Brevo HTTP API key configured");
+} else {
+  console.warn("⚠️ BREVO_API_KEY missing – password reset emails will fail");
+}
 
 // REGISTER
 router.post("/register", async (req, res) => {
