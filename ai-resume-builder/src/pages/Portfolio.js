@@ -24,7 +24,6 @@ import {
   FiStar,
   FiArrowRight,
   FiEye,
-  FiPrinter,
   FiLink,
   FiShare2,
   FiCopy,
@@ -72,6 +71,7 @@ function Portfolio() {
   const [copied, setCopied] = useState(false);
   const [userId, setUserId] = useState(null);
   const [portfolioId, setPortfolioId] = useState(null);
+  const [pdfGenerating, setPdfGenerating] = useState(false);
   const portfolioRef = useRef();
 
   useEffect(() => {
@@ -200,18 +200,42 @@ function Portfolio() {
     const input = portfolioRef.current;
     if (!input) return;
     
+    // Check for blob URL in profile photo (won't work in PDF)
+    if (user.profilePhoto && user.profilePhoto.startsWith('blob:')) {
+      const confirmDownload = window.confirm(
+        "Your profile photo is a temporary local image (not saved to server).\n" +
+        "The PDF may not show the photo correctly.\n\n" +
+        "Would you like to continue downloading anyway?"
+      );
+      if (!confirmDownload) return;
+    }
+    
+    setPdfGenerating(true);
     setSaveStatus("downloading");
+    
     try {
       const html2canvas = (await import('html2canvas')).default;
       const jsPDF = (await import('jspdf')).default;
+      
+      // Temporarily hide animated background for cleaner PDF
+      const bgElements = input.querySelectorAll('.portfolio-bg-animation');
+      bgElements.forEach(el => el.style.display = 'none');
       
       const canvas = await html2canvas(input, { 
         scale: 2, 
         backgroundColor: '#ffffff',
         logging: false,
         useCORS: true,
-        allowTaint: false
+        allowTaint: false,
+        onclone: (clonedDoc, element) => {
+          // Ensure cloned document also hides the background
+          const clonedBg = clonedDoc.querySelectorAll('.portfolio-bg-animation');
+          clonedBg.forEach(el => el.style.display = 'none');
+        }
       });
+      
+      // Restore background
+      bgElements.forEach(el => el.style.display = '');
       
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
@@ -238,7 +262,10 @@ function Portfolio() {
     } catch (error) {
       console.error("Download error:", error);
       setSaveStatus("error");
+      alert("Failed to generate PDF. Please try again.");
       setTimeout(() => setSaveStatus(null), 3000);
+    } finally {
+      setPdfGenerating(false);
     }
   };
 
@@ -247,6 +274,7 @@ function Portfolio() {
     if (userId) {
       return `${baseUrl}/portfolio/share/${userId}`;
     } else if (user.email) {
+      // Use email as fallback (not recommended for production, but works)
       const encodedEmail = btoa(user.email).replace(/=/g, '');
       return `${baseUrl}/portfolio/share/${encodedEmail}`;
     }
@@ -261,6 +289,7 @@ function Portfolio() {
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
+      alert("Unable to copy link. Please select and copy manually.");
     }
   };
 
@@ -612,7 +641,7 @@ function Portfolio() {
               <FiRefreshCw className="spin" /> Saving to database...
             </div>
           )}
-          {saveStatus === "downloading" && (
+          {pdfGenerating && (
             <div className="status-badge saving">
               <FiRefreshCw className="spin" /> Generating PDF...
             </div>
@@ -649,9 +678,13 @@ function Portfolio() {
             <FiEdit2 size={20} />
             Edit Data
           </button>
-          <button className="action-btn download-btn" onClick={downloadAsPDF}>
+          <button 
+            className="action-btn download-btn" 
+            onClick={downloadAsPDF}
+            disabled={pdfGenerating}
+          >
             <FiDownload size={20} />
-            Download PDF
+            {pdfGenerating ? "Generating..." : "Download PDF"}
           </button>
         </div>
 

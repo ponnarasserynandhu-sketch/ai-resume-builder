@@ -1,3 +1,5 @@
+/* EditResumes.css - Full version with dark blue removed */
+
 :root {
   --primary: #4f46e5;
   --primary-dark: #4338ca;
@@ -22,7 +24,6 @@
   box-sizing: border-box;
 }
 
-/* Dashboard Layout */
 .er-dashboard {
   min-height: 100vh;
   background: #f1f5f9;
@@ -38,7 +39,7 @@
   margin: 0 auto;
 }
 
-/* Sidebar Styles */
+/* Sidebar */
 .er-sidebar-new {
   background: #ffffff;
   border-right: 1px solid var(--border);
@@ -116,11 +117,6 @@
   color: #1f2937;
 }
 
-.search-bar input::placeholder {
-  color: #9ca3af;
-}
-
-/* Resume List */
 .er-resume-list {
   flex: 1;
   overflow-y: auto;
@@ -145,10 +141,7 @@
 }
 
 @keyframes slideIn {
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .er-resume-card:hover {
@@ -173,8 +166,6 @@
   font-size: 0.9rem;
   flex-shrink: 0;
   transition: transform 0.3s ease;
-  background-color: #f3e8ff;
-  color: #6b21a5;
 }
 
 .er-resume-card:hover .resume-card-avatar {
@@ -233,7 +224,6 @@
   color: var(--danger);
 }
 
-/* Sidebar Footer */
 .sidebar-footer {
   padding: 12px 20px;
   border-top: 1px solid var(--border);
@@ -254,7 +244,6 @@
   overflow-y: auto;
 }
 
-/* Welcome State */
 .er-welcome-state {
   display: flex;
   flex-direction: column;
@@ -323,17 +312,10 @@
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Editor Header */
 .editor-header {
   padding: 20px 24px;
   border-bottom: 1px solid var(--border);
@@ -360,8 +342,6 @@
   justify-content: center;
   font-weight: 600;
   font-size: 1.1rem;
-  background-color: #f3e8ff;
-  color: #6b21a5;
 }
 
 .title-info h1 {
@@ -398,7 +378,6 @@
   color: var(--danger);
 }
 
-/* Editor Actions */
 .editor-actions {
   display: flex;
   gap: 12px;
@@ -453,7 +432,6 @@
   cursor: not-allowed;
 }
 
-/* Tabs */
 .editor-tabs {
   display: flex;
   gap: 4px;
@@ -494,7 +472,6 @@
   border-radius: 2px;
 }
 
-/* Form Container */
 .editor-form-container {
   padding: 24px;
   max-height: calc(100vh - 200px);
@@ -506,14 +483,8 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .section-header {
@@ -534,7 +505,6 @@
   margin: 0;
 }
 
-/* Form Grid */
 .form-grid {
   display: grid;
   gap: 16px;
@@ -603,23 +573,23 @@
   min-height: 80px;
 }
 
-.editing-mode .er-input-field {
-  background: #ffffff;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
-}
-
-.editing-mode .er-input-field:focus {
+/* Focus style - No dark blue */
+.er-input-field:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
+.editing-mode .er-input-field {
+  background: #ffffff;
 }
 
 .view-mode .er-input-field {
-  cursor: default;
   background: #f9fafb;
+  cursor: default;
 }
 
-/* Education Cards - NO BACKGROUND HIGHLIGHTING */
+/* Education cards - NO dark blue background */
 .education-card {
   background: transparent;
   border-radius: 12px;
@@ -647,7 +617,6 @@
   letter-spacing: 0.5px;
 }
 
-/* Skills Hint */
 .skills-hint {
   background: rgba(245, 158, 11, 0.08);
   border-left: 3px solid var(--warning);
@@ -662,7 +631,6 @@
   margin: 0;
 }
 
-/* Loader */
 .loader-container {
   display: flex;
   flex-direction: column;
@@ -681,18 +649,10 @@
   animation: spin 0.8s linear infinite;
 }
 
-.loader-container p {
-  font-size: 0.75rem;
-  color: var(--gray);
-}
-
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -712,78 +672,193 @@
   font-size: 0.8rem;
 }
 
-/* Scrollbar */
-.er-resume-list::-webkit-scrollbar,
-.editor-form-container::-webkit-scrollbar {
-  width: 5px;
+/* Profile photo editing */
+.profile-photo-edit {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
 }
 
-.er-resume-list::-webkit-scrollbar-track,
-.editor-form-container::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+.photo-preview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
 }
 
-.er-resume-list::-webkit-scrollbar-thumb,
-.editor-form-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+.photo-preview-img {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--border);
 }
 
-.er-resume-list::-webkit-scrollbar-thumb:hover,
-.editor-form-container::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.photo-preview-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .er-dashboard-container {
-    grid-template-columns: 280px 1fr;
-  }
-  
-  .form-grid.two-col {
-    grid-template-columns: 1fr;
-  }
+.clear-photo-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.clear-photo-btn:hover {
+  background: #ef4444;
+}
+
+.photo-placeholder {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.photo-upload-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upload-photo-btn {
+  background: #4f46e5;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+}
+
+.photo-url-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Mobile styles */
+.mobile-sidebar-toggle {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1001;
+  background: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  display: none;
 }
 
 @media (max-width: 768px) {
+  .mobile-sidebar-toggle {
+    display: block;
+  }
+  .er-sidebar-new {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1002;
+    width: 280px;
+  }
+  .er-sidebar-new.mobile-open {
+    transform: translateX(0);
+  }
+  .mobile-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
   .er-dashboard-container {
     grid-template-columns: 1fr;
   }
-  
-  .er-sidebar-new {
-    position: fixed;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 100;
-    width: 280px;
-  }
-  
   .editor-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
   .editor-actions {
     width: 100%;
   }
-  
   .action-btn {
     flex: 1;
     justify-content: center;
   }
-  
   .editor-tabs {
     overflow-x: auto;
     padding: 0 16px;
   }
-  
   .tab-btn {
     padding: 10px 14px;
     white-space: nowrap;
   }
-  
   .editor-form-container {
     padding: 16px;
   }
+  .form-grid.two-col {
+    grid-template-columns: 1fr;
+  }
+}
+.photo-url-wrapper {
+  position: relative;
+}
+.url-validating {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #4f46e5;
+  background: white;
+  padding-left: 6px;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

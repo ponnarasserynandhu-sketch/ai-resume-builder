@@ -724,3 +724,262 @@
     flex-direction: column;
   }
 }
+/* Additional styles for new buttons, modals, overlay, etc. */
+
+.vr-create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--vr-accent);
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 16px;
+}
+
+.vr-create-btn:hover {
+  background: var(--vr-accent-dark);
+  transform: translateY(-2px);
+}
+
+.vr-empty-create-btn {
+  background: var(--vr-accent);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+}
+
+.vr-empty-create-btn:hover {
+  background: var(--vr-accent-dark);
+}
+
+/* Mobile overlay */
+.vr-mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+/* Modal styles */
+.vr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.vr-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.vr-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: var(--vr-danger);
+}
+
+.vr-modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.vr-modal p {
+  margin-bottom: 24px;
+  color: var(--vr-text-sub);
+}
+
+.vr-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.vr-modal-cancel, .vr-modal-confirm {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.vr-modal-cancel {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.vr-modal-confirm {
+  background: var(--vr-danger);
+  color: white;
+}
+
+.vr-modal-confirm:hover {
+  background: #dc2626;
+}
+
+/* Small spinner for PDF button */
+.vr-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+
+@media (max-width: 1024px) {
+  .vr-create-btn {
+    margin-bottom: 10px;
+  }
+  .vr-header-right {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+}
+.vr-header-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+/* Sort dropdown */
+.vr-sort-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--vr-border);
+  transition: all 0.2s ease;
+}
+
+.vr-sort-icon {
+  color: var(--vr-text-light);
+}
+
+.vr-sort-select {
+  border: none;
+  background: transparent;
+  padding: 10px 4px;
+  font-size: 0.8rem;
+  color: var(--vr-text-main);
+  cursor: pointer;
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .vr-search-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .vr-sort-wrapper {
+    justify-content: space-between;
+  }
+}
+/* Notification styles */
+.vr-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1100;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 12px 20px;
+  min-width: 280px;
+  animation: slideInRight 0.3s ease;
+}
+
+.vr-notification.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+
+.notification-icon {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.vr-notification.success .notification-icon {
+  color: #10b981;
+}
+
+.vr-notification.error .notification-icon {
+  color: #ef4444;
+}
+
+.vr-notification.info .notification-icon {
+  color: #3b82f6;
+}
+
+/* Small spinner for delete buttons */
+.vr-spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}

@@ -4,8 +4,48 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const Groq = require("groq-sdk");
+const jwt = require("jsonwebtoken"); // Add JWT verification
 
-// Configure multer for image upload
+// ==================== JWT Authentication Middleware ====================
+const verifyToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ success: false, message: "Access token required" });
+  }
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret");
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({ success: false, message: "Invalid or expired token" });
+  }
+};
+
+// ==================== RATE LIMITING (Simple in-memory) ====================
+const rateLimit = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX = 5;
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = rateLimit.get(ip);
+  if (!record) {
+    rateLimit.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  if (now > record.resetTime) {
+    rateLimit.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  if (record.count >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  record.count++;
+  return true;
+}
+
+// ==================== MULTER CONFIGURATION ====================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, "../uploads/ai-resumes");
@@ -32,31 +72,32 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
 
-// Initialize Groq
+// ==================== GROQ INITIALIZATION ====================
 let groq;
 if (process.env.GROQ_API_KEY) {
   groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
   console.log("✅ Groq SDK initialized for AI Resume analysis");
 } else {
-  console.warn("⚠️ GROQ_API_KEY not set for AI Resume analysis");
+  console.warn("⚠️ GROQ_API_KEY not set. AI analysis will use fallback.");
 }
 
-// Helper function to convert image to base64
+// ==================== HELPER FUNCTIONS ====================
 const imageToBase64 = (imagePath) => {
   const imageBuffer = fs.readFileSync(imagePath);
   return imageBuffer.toString("base64");
 };
 
-// Helper function to analyze image with Groq Vision
+// Updated to use the currently supported Groq vision model (as of 2025)
 const analyzeImageWithGroq = async (imageBase64, mimeType) => {
   if (!groq) {
     throw new Error("Groq API key not configured");
   }
 
-  const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
+  // Use the stable vision model
+  const VISION_MODEL = "llama-3.2-11b-vision-preview";
   
   console.log(`🖼️ Using vision model: ${VISION_MODEL}`);
 
@@ -141,12 +182,15 @@ IMPORTANT RULES:
     const content = response.choices[0].message.content;
     console.log("Groq Vision Analysis Response:", content);
 
-    let jsonStr = content;
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[0];
+    // Robust JSON extraction: find first '{' and last '}'
+    const firstBrace = content.indexOf('{');
+    const lastBrace = content.lastIndexOf('}');
+    if (firstBrace === -1 || lastBrace === -1) {
+      throw new Error("No JSON object found in response");
     }
-
+    let jsonStr = content.substring(firstBrace, lastBrace + 1);
+    // Attempt to fix common issues (trailing commas, etc.) - basic cleanup
+    jsonStr = jsonStr.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
     return JSON.parse(jsonStr);
   } catch (error) {
     console.error("Groq Vision Analysis Error:", error.message);
@@ -154,7 +198,6 @@ IMPORTANT RULES:
   }
 };
 
-// Default layout for fallback (standard order)
 const getDefaultLayout = () => {
   return {
     layoutType: "two-column",
@@ -180,7 +223,6 @@ const getDefaultLayout = () => {
   };
 };
 
-// Helper function to get section display title
 const getSectionDisplayTitle = (sectionKey) => {
   const titles = {
     "personal-info": "Personal Information",
@@ -195,10 +237,20 @@ const getSectionDisplayTitle = (sectionKey) => {
   return titles[sectionKey] || sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1);
 };
 
-// Main endpoint for AI layout analysis
-router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
+// ==================== MAIN ENDPOINT (with authentication) ====================
+router.post("/clone-layout", verifyToken, upload.single("layoutImage"), async (req, res) => {
   const startTime = Date.now();
   console.log("🤖 AI Resume Layout Analysis Started");
+  
+  const clientIp = req.ip || req.connection.remoteAddress;
+  if (!checkRateLimit(clientIp)) {
+    return res.status(429).json({
+      success: false,
+      message: "Too many requests. Please try again later.",
+    });
+  }
+
+  let uploadedFilePath = null;
 
   try {
     if (!req.file) {
@@ -207,7 +259,7 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
         message: "No image file uploaded. Please upload a resume image.",
       });
     }
-
+    uploadedFilePath = req.file.path;
     console.log(`📸 Image received: ${req.file.filename}`);
     console.log(`📏 Image size: ${(req.file.size / 1024).toFixed(2)} KB`);
 
@@ -221,7 +273,7 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
       }
     }
 
-    const imageBase64 = imageToBase64(req.file.path);
+    const imageBase64 = imageToBase64(uploadedFilePath);
     const mimeType = req.file.mimetype;
 
     let analysis;
@@ -241,29 +293,25 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
     const hasProfilePhoto = analysis.hasProfilePhoto || false;
     const sectionVisibility = analysis.sectionVisibility || getDefaultLayout().sectionVisibility;
 
-    // Build the sections object in the EXACT order detected from the image
     const sections = {};
-    
-    // Define all possible sections with their properties
     const allSections = ["summary", "skills", "education", "experience", "projects", "certifications", "languages"];
     
-    // Process sections in the order detected by AI
+    // Build sections based on AI's columnAssignment and order
     sectionOrder.forEach((sectionKey, orderIndex) => {
       if (sectionKey !== "personal-info" && allSections.includes(sectionKey)) {
-        // Determine which column this section belongs to
         let column = "main";
         if (layoutType === "two-column") {
+          // Respect AI's columnAssignment if available, otherwise fallback to heuristic
           if (columnAssignment.left?.includes(sectionKey)) {
             column = "left";
           } else if (columnAssignment.right?.includes(sectionKey)) {
             column = "right";
           } else {
-            // Default column assignment based on common patterns
-            const leftSections = ["skills", "certifications", "languages"];
-            column = leftSections.includes(sectionKey) ? "left" : "right";
+            // Fallback: typical sections go to left or right
+            const defaultLeft = ["skills", "certifications", "languages"];
+            column = defaultLeft.includes(sectionKey) ? "left" : "right";
           }
         }
-        
         sections[sectionKey] = {
           visible: sectionVisibility[sectionKey] !== false,
           column: column,
@@ -274,12 +322,12 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
           innerPadding: "0px",
           titleFontSize: "16px",
           uppercaseTitle: false,
-          order: orderIndex // Preserve the exact order from the image
+          order: orderIndex
         };
       }
     });
     
-    // Add any missing sections (in case AI didn't detect them) at the end
+    // Add any missing sections
     allSections.forEach(sectionKey => {
       if (!sections[sectionKey]) {
         const column = (layoutType === "two-column" && ["skills", "certifications", "languages"].includes(sectionKey)) ? "left" : "right";
@@ -293,12 +341,11 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
           innerPadding: "0px",
           titleFontSize: "16px",
           uppercaseTitle: false,
-          order: 999 // Put missing sections at the end
+          order: 999
         };
       }
     });
 
-    // Set column widths based on layout type
     let columnWidths = "1fr 2fr";
     if (layoutType === "two-column") {
       const leftSectionsCount = Object.values(sections).filter(s => s.column === "left" && s.visible).length;
@@ -309,7 +356,6 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
       columnWidths = "1fr";
     }
 
-    // Prepare the response in the format expected by frontend
     const responseData = {
       success: true,
       layout: {
@@ -330,7 +376,7 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
       },
       primaryColor: colors.primaryColor,
       accentColor: colors.accentColor,
-      sectionOrder: sectionOrder, // Send the detected order to frontend
+      sectionOrder: sectionOrder,
       analyzedAt: new Date().toISOString(),
       imageAnalyzed: req.file.originalname,
       analysisMethod: "ai-vision-analysis",
@@ -349,28 +395,14 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
     console.log(`   Primary Color: ${colors.primaryColor}`);
     console.log(`   Processing Time: ${responseData.processingTime}`);
 
-    // Clean up uploaded file
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.error("Error deleting temp file:", err);
-      else console.log("🗑️ Temp file deleted:", req.file.filename);
-    });
-
     res.json(responseData);
     
   } catch (error) {
     console.error("❌ AI Layout Analysis Error:", error.message);
-
-    // Clean up file if it exists
-    if (req.file && req.file.path) {
-      fs.unlink(req.file.path, (err) => {
-        if (err) console.error("Error deleting file:", err);
-      });
-    }
-
-    // Return fallback response
+    
+    // Fallback response
     const defaultLayout = getDefaultLayout();
     const fallbackSections = {};
-    
     defaultLayout.sectionOrder.forEach((sectionKey, idx) => {
       if (sectionKey !== "personal-info") {
         const column = (defaultLayout.layoutType === "two-column" && defaultLayout.columnAssignment.left?.includes(sectionKey)) ? "left" : "right";
@@ -419,16 +451,24 @@ router.post("/clone-layout", upload.single("layoutImage"), async (req, res) => {
     };
 
     res.json(fallbackResponse);
+  } finally {
+    // ✅ Always delete temporary file
+    if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+      fs.unlink(uploadedFilePath, (err) => {
+        if (err) console.error("Error deleting temp file:", err);
+        else console.log("🗑️ Temp file deleted:", uploadedFilePath);
+      });
+    }
   }
 });
 
-// Test endpoint
+// ==================== TEST & STATUS ENDPOINTS ====================
 router.get("/test", (req, res) => {
   res.json({
     success: true,
     message: "AI Resume API is working",
     groqConfigured: !!process.env.GROQ_API_KEY,
-    visionModel: "meta-llama/llama-4-scout-17b-16e-instruct",
+    visionModel: "llama-3.2-11b-vision-preview",
     features: {
       sectionOrderDetection: true,
       columnDetection: true,
@@ -438,7 +478,6 @@ router.get("/test", (req, res) => {
   });
 });
 
-// Status endpoint
 router.get("/status", (req, res) => {
   res.json({
     success: true,

@@ -1,21 +1,21 @@
 :root {
-  /* Light Blue Theme Colors */
+  /* Refined Light Blue Theme */
   --primary: #3b82f6;
   --primary-light: #60a5fa;
   --primary-dark: #2563eb;
   --secondary: #06b6d4;
   --accent: #0ea5e9;
   --bg: #ffffff;
-  --bg-secondary: #f0f9ff;
+  --bg-secondary: #f8fafc;
   --surface: #ffffff;
-  --text: #0f172a;
-  --text-secondary: #334155;
-  --border: #dbeafe;
-  --card-shadow: 0 8px 20px rgba(59, 130, 246, 0.08);
-  --gradient-start: #eff6ff;
+  --text: #1e293b;
+  --text-secondary: #475569;
+  --border: #e2e8f0;
+  --card-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  --gradient-start: #f0f9ff;
   --gradient-end: #e0f2fe;
-  
-  /* Common */
+
+  /* Spacing & Radius */
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -96,8 +96,8 @@
 /* Container */
 .portfolio-container {
   min-height: 100vh;
-  transition: var(--transition);
   background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  transition: var(--transition);
 }
 
 .portfolio-wrapper {
@@ -157,6 +157,8 @@
 
 /* Header */
 .portfolio-header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   border-radius: var(--radius-xl);
   padding: 1.5rem 2rem;
   margin-bottom: 1rem;
@@ -165,10 +167,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
-  transition: var(--transition);
-  background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
   box-shadow: var(--card-shadow);
 }
 
@@ -268,7 +267,7 @@
   color: #dc2626;
 }
 
-/* Action Buttons - Uniform Sizing and Colors */
+/* Action Buttons */
 .portfolio-actions {
   display: flex;
   gap: 1.5rem;
@@ -317,7 +316,7 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-/* Download button special color */
+/* Download button */
 .download-btn {
   background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
@@ -330,11 +329,17 @@
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
+.download-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* Main Content */
 .portfolio-content {
   border-radius: var(--radius-xl);
   overflow: hidden;
-  transition: var(--transition);
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--card-shadow);
@@ -1036,7 +1041,7 @@
   transform: translateY(-2px);
 }
 
-/* Save Portfolio Section - Bottom of Preview */
+/* Save Portfolio Section */
 .save-portfolio-section {
   margin-top: 2rem;
   padding: 1.5rem;
