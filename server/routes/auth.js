@@ -241,8 +241,6 @@ router.post("/admin-login", async (req, res) => {
     let adminUser = await User.findOne({ email: ADMIN_EMAIL });
 
     if (!adminUser) {
-      // Create the admin user using the same password hash (no need to rehash)
-      // But we need a valid bcrypt hash; we can reuse the existing hash.
       adminUser = await User.create({
         name: "Administrator",
         email: ADMIN_EMAIL,
