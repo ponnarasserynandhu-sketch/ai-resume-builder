@@ -208,67 +208,89 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// ==================== ADMIN LOGIN (Hardcoded via .env - NO DATABASE) ====================
+// ==================== ADMIN LOGIN (Uses database, creates admin if missing) ====================
 router.post("/admin-login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log("Admin login attempt (hardcoded):", email);
+    console.log("Admin login attempt:", email);
 
-    // Get admin credentials from environment variables
-    const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+    // Get expected admin credentials from environment
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@example.com";
     const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH;
 
-    if (!ADMIN_EMAIL || !ADMIN_PASSWORD_HASH) {
-      console.error("ADMIN_EMAIL or ADMIN_PASSWORD_HASH not set in .env");
+    if (!ADMIN_PASSWORD_HASH) {
+      console.error("ADMIN_PASSWORD_HASH not set in .env");
       return res.status(500).json({ 
         success: false, 
-        message: "Admin login not configured. Please contact support." 
+        message: "Admin login not configured properly. Please contact support." 
       });
     }
 
-    // Check email
-    if (email !== ADMIN_EMAIL) {
-      console.log("Admin email mismatch");
-      return res.status(401).json({ 
-        success: false, 
-        message: "Invalid admin credentials" 
-      });
-    }
-
-    // Check password using bcrypt
+    // Verify credentials against the stored hash
     const isMatch = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
-    if (!isMatch) {
-      console.log("Admin password mismatch");
+    if (email !== ADMIN_EMAIL || !isMatch) {
+      console.log("Admin credentials invalid");
       return res.status(401).json({ 
         success: false, 
         message: "Invalid admin credentials" 
       });
     }
 
-    // Generate JWT token (no database user ID, use fixed admin ID)
+    // Find or create admin user in the database
+    let adminUser = await User.findOne({ email: ADMIN_EMAIL });
+
+    if (!adminUser) {
+      // Create the admin user using the same password hash (no need to rehash)
+      // But we need a valid bcrypt hash; we can reuse the existing hash.
+      adminUser = await User.create({
+        name: "Administrator",
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD_HASH,  // already hashed
+        role: "admin",
+        status: "active",
+        lastActive: new Date()
+      });
+      console.log("✅ Admin user created with ID:", adminUser._id);
+    } else {
+      // Ensure the existing user has admin role and active status
+      let needsUpdate = false;
+      if (adminUser.role !== "admin") {
+        adminUser.role = "admin";
+        needsUpdate = true;
+      }
+      if (adminUser.status !== "active") {
+        adminUser.status = "active";
+        needsUpdate = true;
+      }
+      if (needsUpdate) {
+        await adminUser.save();
+        console.log("✅ Admin user updated (role/status)");
+      }
+    }
+
+    // Generate JWT token with the real ObjectId
     const token = jwt.sign(
       { 
-        id: "admin_hardcoded", 
-        email: ADMIN_EMAIL, 
-        role: "admin",
-        isHardcoded: true 
+        id: adminUser._id.toString(), 
+        email: adminUser.email, 
+        role: "admin" 
       },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    console.log("Admin login successful (hardcoded):", email);
+    console.log("Admin login successful (database user):", email);
 
     res.json({ 
       success: true, 
       token,
       user: {
-        id: "admin_hardcoded",
-        name: "Administrator",
-        email: ADMIN_EMAIL,
+        id: adminUser._id,
+        name: adminUser.name,
+        email: adminUser.email,
         role: "admin",
-        status: "active"
+        status: adminUser.status
       }
     });
 
@@ -463,7 +485,7 @@ router.get("/me", async (req, res) => {
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Check if it's the hardcoded admin
+    // Check if it's the hardcoded admin (for backward compatibility)
     if (decoded.id === "admin_hardcoded" && decoded.role === "admin") {
       return res.json({ 
         success: true, 

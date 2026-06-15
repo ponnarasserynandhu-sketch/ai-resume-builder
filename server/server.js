@@ -105,9 +105,10 @@ try {
   console.warn("⚠️ Dashboard routes not found");
 }
 
-// Admin routes
+// Admin routes - using explicit variable as requested
 try {
-  app.use("/api/admin", require("./routes/admin"));
+  const adminRoutes = require("./routes/admin");
+  app.use("/api/admin", adminRoutes);
   console.log("✅ Admin routes loaded");
 } catch (err) {
   console.warn("⚠️ Admin routes not found");

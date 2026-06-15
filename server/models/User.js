@@ -40,7 +40,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null
   },
-  // PASSWORD RESET FIELDS - Updated for consistency with frontend
+  // PASSWORD RESET FIELDS
   resetPasswordToken: {
     type: String,
     default: null
@@ -49,7 +49,7 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  // Keep both for backward compatibility
+  // Backward compatibility
   passwordResetToken: {
     type: String,
     default: null
@@ -70,7 +70,12 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  // Profile picture - keep both for compatibility
   profilePicture: {
+    type: String,
+    default: null
+  },
+  profilePhoto: {
     type: String,
     default: null
   },
@@ -136,15 +141,14 @@ const UserSchema = new mongoose.Schema({
   timestamps: true 
 });
 
-// REMOVE ALL pre('save') MIDDLEWARE - This is the key fix
-// Do not add any middleware here at all
+// No pre('save') middleware – password hashing handled in auth routes
 
 // Compare password method
 UserSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Update last login - Use findByIdAndUpdate to avoid any middleware
+// Update last login – uses findByIdAndUpdate to avoid middleware
 UserSchema.methods.updateLastLogin = async function() {
   const User = mongoose.model("User");
   return await User.findByIdAndUpdate(
@@ -168,7 +172,7 @@ UserSchema.methods.getPublicProfile = function() {
     email: this.email,
     role: this.role,
     status: this.status,
-    profilePicture: this.profilePicture,
+    profilePicture: this.profilePicture || this.profilePhoto,
     location: this.location,
     bio: this.bio,
     createdAt: this.createdAt,

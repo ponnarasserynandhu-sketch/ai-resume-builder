@@ -609,4 +609,78 @@ router.get("/system-stats", [auth, admin], async (req, res) => {
   }
 });
 
+// ==================== ADDED MISSING SETTINGS ENDPOINTS ====================
+
+// @route   POST /api/admin/settings/export-data
+// @desc    Export system data as JSON
+// @access  Private/Admin
+router.post("/settings/export-data", [auth, admin], async (req, res) => {
+  try {
+    const { type = "all" } = req.body;
+    
+    let data = {};
+    
+    if (type === "all" || type === "users") {
+      data.users = await User.find().select("-password");
+    }
+    if (type === "all" || type === "resumes") {
+      data.resumes = await Resume.find();
+    }
+    if (type === "all" || type === "portfolios") {
+      data.portfolios = await Portfolio.find();
+    }
+    if (type === "all" || type === "activities") {
+      data.activities = await Activity.find();
+    }
+    
+    data.exportedAt = new Date();
+    
+    // Log the export action
+    const adminUser = await User.findById(req.user.id);
+    await Activity.create({
+      userId: req.user.id,
+      userName: adminUser.name,
+      userEmail: adminUser.email,
+      type: "data_exported",
+      description: `Admin ${adminUser.name} exported ${type} data`
+    });
+    
+    res.json({
+      success: true,
+      data: data,
+      message: "Data exported successfully"
+    });
+  } catch (err) {
+    console.error("Export error:", err);
+    res.status(500).json({ success: false, message: "Export failed", error: err.message });
+  }
+});
+
+// @route   POST /api/admin/settings/clear-cache
+// @desc    Clear system cache (placeholder)
+// @access  Private/Admin
+router.post("/settings/clear-cache", [auth, admin], async (req, res) => {
+  try {
+    // In a real application, you would clear Redis, memory cache, etc.
+    // Here we just return success.
+    
+    const adminUser = await User.findById(req.user.id);
+    await Activity.create({
+      userId: req.user.id,
+      userName: adminUser.name,
+      userEmail: adminUser.email,
+      type: "cache_cleared",
+      description: `Admin ${adminUser.name} cleared system cache`
+    });
+    
+    res.json({
+      success: true,
+      message: "Cache cleared successfully"
+    });
+  } catch (err) {
+    console.error("Clear cache error:", err);
+    res.status(500).json({ success: false, message: "Failed to clear cache", error: err.message });
+  }
+});
+
 module.exports = router;

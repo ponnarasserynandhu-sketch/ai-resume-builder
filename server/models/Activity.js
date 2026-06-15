@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ActivitySchema = new mongoose.Schema({
+const ActivityLogSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -42,6 +42,7 @@ const ActivitySchema = new mongoose.Schema({
       "profile_updated", 
       "profile_created",
       "profile_photo_updated",
+      "profile_update",        // alias for admin dashboard
       
       // PDF & Export
       "export_pdf",
@@ -61,6 +62,7 @@ const ActivitySchema = new mongoose.Schema({
       "user_blocked",
       "user_activated",
       "user_deleted",
+      "admin_action",          // for admin dashboard
       
       // AI Features
       "ai_summary_generated",
@@ -115,20 +117,20 @@ const ActivitySchema = new mongoose.Schema({
 });
 
 // Indexes for better query performance
-ActivitySchema.index({ userId: 1 });
-ActivitySchema.index({ type: 1 });
-ActivitySchema.index({ createdAt: -1 });
-ActivitySchema.index({ userEmail: 1 });
-ActivitySchema.index({ status: 1 });
-ActivitySchema.index({ createdAt: -1, type: 1 });
+ActivityLogSchema.index({ userId: 1 });
+ActivityLogSchema.index({ type: 1 });
+ActivityLogSchema.index({ createdAt: -1 });
+ActivityLogSchema.index({ userEmail: 1 });
+ActivityLogSchema.index({ status: 1 });
+ActivityLogSchema.index({ createdAt: -1, type: 1 });
 
 // Virtual for formatted date
-ActivitySchema.virtual("formattedDate").get(function() {
+ActivityLogSchema.virtual("formattedDate").get(function() {
   return this.createdAt ? this.createdAt.toLocaleString() : "";
 });
 
-// Method to get activity summary
-ActivitySchema.methods.getSummary = function() {
+// Method to get activity summary (compatible with admin dashboard)
+ActivityLogSchema.methods.getSummary = function() {
   return {
     id: this._id,
     user: this.userName,
@@ -141,7 +143,7 @@ ActivitySchema.methods.getSummary = function() {
 };
 
 // Static method to get recent activities
-ActivitySchema.statics.getRecentActivities = async function(limit = 20) {
+ActivityLogSchema.statics.getRecentActivities = async function(limit = 20) {
   return this.find()
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -149,7 +151,7 @@ ActivitySchema.statics.getRecentActivities = async function(limit = 20) {
 };
 
 // Static method to get activities by user
-ActivitySchema.statics.getByUser = async function(userId, limit = 50) {
+ActivityLogSchema.statics.getByUser = async function(userId, limit = 50) {
   return this.find({ userId })
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -157,7 +159,7 @@ ActivitySchema.statics.getByUser = async function(userId, limit = 50) {
 };
 
 // Static method to get activities by type
-ActivitySchema.statics.getByType = async function(type, limit = 100) {
+ActivityLogSchema.statics.getByType = async function(type, limit = 100) {
   return this.find({ type })
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -165,7 +167,7 @@ ActivitySchema.statics.getByType = async function(type, limit = 100) {
 };
 
 // Static method to log an activity (convenience method)
-ActivitySchema.statics.log = async function(data) {
+ActivityLogSchema.statics.log = async function(data) {
   const activity = new this({
     userId: data.userId,
     userName: data.userName,
@@ -185,7 +187,8 @@ ActivitySchema.statics.log = async function(data) {
 };
 
 // Ensure virtuals are included in JSON output
-ActivitySchema.set("toJSON", { virtuals: true });
-ActivitySchema.set("toObject", { virtuals: true });
+ActivityLogSchema.set("toJSON", { virtuals: true });
+ActivityLogSchema.set("toObject", { virtuals: true });
 
-module.exports = mongoose.model("Activity", ActivitySchema);
+// Export as "ActivityLog" (singular) – model name used in admin routes
+module.exports = mongoose.model("ActivityLog", ActivityLogSchema);
