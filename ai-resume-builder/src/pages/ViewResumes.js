@@ -1,4 +1,4 @@
-// ViewResumes.js
+// ViewResumes.js (final version with deduplication and unique keys)
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import API_URL from '../config';
@@ -52,7 +52,6 @@ function ViewResumes() {
   const sidePanelRef = useRef(null);
   const isMountedRef = useRef(true);
 
-  // Prevent body scroll when mobile overlay is open
   useEffect(() => {
     if (mobileOverlay) {
       document.body.style.overflow = 'hidden';
@@ -78,8 +77,12 @@ function ViewResumes() {
           aiManifest: r.aiManifest || null,
           ...r.data
         }));
-        setResumes(formatted);
-        if (selectedResume && !formatted.find(r => r._id === selectedResume._id)) {
+        // Deduplicate by _id (keep first occurrence)
+        const uniqueResumes = formatted.filter((resume, index, self) =>
+          index === self.findIndex(r => r._id === resume._id)
+        );
+        setResumes(uniqueResumes);
+        if (selectedResume && !uniqueResumes.find(r => r._id === selectedResume._id)) {
           setSelectedResume(null);
           setMobileOverlay(false);
         }
@@ -92,7 +95,6 @@ function ViewResumes() {
     }
   };
 
-  // Sorting + filtering logic (does NOT depend on selectedResume)
   const applySortAndFilter = useCallback(() => {
     let filtered = [...resumes];
     if (searchTerm.trim()) {
@@ -112,10 +114,8 @@ function ViewResumes() {
     if (isMountedRef.current) {
       setFilteredResumes(filtered);
       const newTotalPages = Math.ceil(filtered.length / itemsPerPage);
-      // Adjust current page if needed
       if (currentPage > newTotalPages && newTotalPages > 0) setCurrentPage(newTotalPages);
       else if (newTotalPages === 0) setCurrentPage(1);
-      // If selected resume no longer exists in filtered list, close preview
       if (selectedResume && !filtered.find(r => r._id === selectedResume._id)) {
         setSelectedResume(null);
         setMobileOverlay(false);
@@ -127,17 +127,15 @@ function ViewResumes() {
     applySortAndFilter();
   }, [applySortAndFilter]);
 
-  // Debounced search – also reset to page 1
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     searchTimeoutRef.current = setTimeout(() => {
-      setCurrentPage(1);   // ✅ Reset to page 1 on new search
+      setCurrentPage(1);
       applySortAndFilter();
     }, 300);
     return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current); };
   }, [searchTerm, applySortAndFilter]);
 
-  // Initial data load
   useEffect(() => {
     isMountedRef.current = true;
     fetchResumes();
@@ -167,7 +165,7 @@ function ViewResumes() {
         setSelectedResume(null);
         setMobileOverlay(false);
       }
-      await fetchResumes();
+      await fetchResumes(); // refresh the list
       showNotification("Resume deleted successfully", "success");
     } catch (err) {
       console.error("Delete error:", err);
@@ -182,7 +180,6 @@ function ViewResumes() {
     navigate(`/edit/${resumeId}`);
   };
 
-  // ---------- PDF Export: detached container, full capture, no cut-off ----------
   const handleDownloadPDF = async (resume) => {
     if (pdfLoadingMap[resume._id]) return;
     setPdfLoadingMap(prev => ({ ...prev, [resume._id]: true }));
@@ -225,7 +222,6 @@ function ViewResumes() {
       root = createRoot(container);
       root.render(<Component />);
 
-      // Wait for rendering and layout
       await new Promise(resolve => setTimeout(resolve, 500));
       await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       if (isCancelled) return;
@@ -291,14 +287,12 @@ function ViewResumes() {
     if (window.innerWidth < 1024) setMobileOverlay(true);
   };
 
-  // Scroll side panel to top when selected resume changes
   useEffect(() => {
     if (selectedResume && sidePanelRef.current) {
       sidePanelRef.current.scrollTop = 0;
     }
   }, [selectedResume]);
 
-  // Keyboard navigation (up/down) between filtered resumes
   useEffect(() => {
     if (!selectedResume || filteredResumes.length === 0) return;
     const currentIndex = filteredResumes.findIndex(r => r._id === selectedResume._id);
@@ -319,7 +313,6 @@ function ViewResumes() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [filteredResumes, selectedResume]);
 
-  // Scroll card into view when selected
   const cardRefs = useRef({});
   useEffect(() => {
     if (selectedResume && cardRefs.current[selectedResume._id]) {
@@ -327,7 +320,6 @@ function ViewResumes() {
     }
   }, [selectedResume]);
 
-  // Helper functions for display
   const getInitials = (name) => {
     if (!name) return "?";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
@@ -355,7 +347,6 @@ function ViewResumes() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  // Pagination logic
   const indexLast = currentPage * itemsPerPage;
   const indexFirst = indexLast - itemsPerPage;
   const currentItems = filteredResumes.slice(indexFirst, indexLast);
@@ -432,7 +423,7 @@ function ViewResumes() {
               {currentItems.map((resume, index) => (
                 <div
                   className={`vr-card ${selectedResume?._id === resume._id ? "active" : ""}`}
-                  key={resume._id}
+                  key={`${resume._id}-${index}`} // ✅ Unique composite key
                   ref={el => cardRefs.current[resume._id] = el}
                   onClick={() => handleCardClick(resume)}
                   style={{ animationDelay: `${index * 0.05}s` }}
