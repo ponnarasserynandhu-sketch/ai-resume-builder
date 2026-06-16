@@ -724,8 +724,8 @@
     flex-direction: column;
   }
 }
-/* Additional styles for new buttons, modals, overlay, etc. */
 
+/* Additional styles for new buttons, modals, overlay, etc. */
 .vr-create-btn {
   display: inline-flex;
   align-items: center;
@@ -871,12 +871,14 @@
     gap: 12px;
   }
 }
+
 .vr-header-right {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
 }
+
 /* Sort dropdown */
 .vr-sort-wrapper {
   position: relative;
@@ -913,6 +915,7 @@
     justify-content: space-between;
   }
 }
+
 /* Notification styles */
 .vr-notification {
   position: fixed;
