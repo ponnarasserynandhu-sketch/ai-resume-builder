@@ -105,7 +105,6 @@ function Profile() {
         const profileData = res.data.profile;
         setUser(prev => {
           const newUser = { ...prev, ...profileData };
-          // Update original ref after state is set (use setTimeout or useEffect)
           originalUserRef.current = JSON.parse(JSON.stringify(newUser));
           return newUser;
         });
@@ -113,9 +112,6 @@ function Profile() {
       }
     } catch (err) {
       console.error("Fetch Error:", err);
-      if (err.response?.status === 401) {
-        // Redirect to login if needed
-      }
     }
   };
 
@@ -250,10 +246,13 @@ function Profile() {
 
       if (res.data.success) {
         setSaveStatus("success");
+        // Clear the selected photo file after successful save
+        setPhotoFile(null);
         // Update original reference after successful save
         const cleanUser = { ...user };
         originalUserRef.current = JSON.parse(JSON.stringify(cleanUser));
         setHasChanges(false);
+        // Refresh profile from server (gets the stored relative URL)
         await fetchProfile();
         setTimeout(() => setSaveStatus(null), 3000);
       } else {
@@ -456,6 +455,10 @@ function Profile() {
                   src={user.profilePhoto ? getImageUrl(user.profilePhoto) : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='%234361ee'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E"}
                   alt={user.name || "Profile"}
                   className="avatar-image"
+                  onError={(e) => {
+                    // Fallback to default SVG if image fails to load
+                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='%234361ee'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+                  }}
                 />
                 <label className="avatar-upload" htmlFor="profile-photo-input">
                   <FiCamera size={16} />
