@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// SAVE PROFILE
+// ========== SAVE PROFILE (with optional photo) ==========
 router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
   try {
     console.log("Received save request for user:", req.user.id);
@@ -55,7 +55,7 @@ router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
 
     // Handle file upload – store RELATIVE path (fixes mixed content)
     if (req.file) {
-      updateData.profilePhoto = `/uploads/${req.file.filename}`; // ← FIXED: relative path
+      updateData.profilePhoto = `/uploads/${req.file.filename}`;
     }
 
     let activityType = "profile_updated";
@@ -68,7 +68,6 @@ router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
       await profile.save();
       console.log("Created new profile:", profile._id);
     } else {
-      // Update existing profile - fixed deprecation warning
       const updatedProfile = await Profile.findOneAndUpdate(
         { userId: req.user.id },
         { $set: updateData },
@@ -95,7 +94,22 @@ router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
   }
 });
 
-// GET PROFILE
+// ========== UPLOAD PROFILE PHOTO ONLY (NEW) ==========
+router.post("/upload-photo", auth, upload.single("profilePhoto"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+    // Return relative path – fixes mixed content on HTTPS
+    const photoUrl = `/uploads/${req.file.filename}`;
+    res.json({ success: true, photoUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Upload failed" });
+  }
+});
+
+// ========== GET PROFILE ==========
 router.get("/me", auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
@@ -107,7 +121,7 @@ router.get("/me", auth, async (req, res) => {
   }
 });
 
-// CREATE PORTFOLIO FROM PROFILE
+// ========== PORTFOLIO ROUTES ==========
 router.post("/create-portfolio", auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
@@ -147,7 +161,6 @@ router.post("/create-portfolio", auth, async (req, res) => {
   }
 });
 
-// GET PORTFOLIO STATUS
 router.get("/portfolio-status", auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
@@ -169,7 +182,6 @@ router.get("/portfolio-status", auth, async (req, res) => {
   }
 });
 
-// UPDATE PORTFOLIO
 router.put("/update-portfolio", auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
@@ -207,7 +219,6 @@ router.put("/update-portfolio", auth, async (req, res) => {
   }
 });
 
-// GET PUBLIC PROFILE
 router.get("/public/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -240,7 +251,6 @@ router.get("/public/:id", async (req, res) => {
   }
 });
 
-// DELETE PORTFOLIO
 router.delete("/delete-portfolio", auth, async (req, res) => {
   try {
     const profile = await Profile.findOne({ userId: req.user.id });
