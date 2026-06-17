@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import API_URL from '../config';
+import API_URL, { getImageUrl } from '../config';
 import "./Portfolio.css";
 import {
   FiGlobe,
@@ -354,7 +354,7 @@ function Portfolio() {
           <div className="hero-avatar-glow"></div>
           <div className="hero-avatar">
             {user.profilePhoto ? (
-              <img src={user.profilePhoto} alt={user.name} />
+              <img src={getImageUrl(user.profilePhoto)} alt={user.name} />
             ) : (
               <div className="avatar-initials">{getInitials(user.name)}</div>
             )}

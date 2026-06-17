@@ -12,6 +12,26 @@ const getBackendURL = () => {
 
 export const API_URL = getBackendURL();
 
+// Helper function to get a full image URL from a relative path
+// This fixes mixed content warnings on HTTPS production sites
+export const getImageUrl = (path) => {
+  if (!path) return null;
+  // If it's already a full URL (http or https), return as is
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  // If it's a relative path starting with /uploads/, prepend API_URL
+  if (path.startsWith('/uploads/')) {
+    return `${API_URL}${path}`;
+  }
+  // If it's just a filename, assume it's under /uploads/
+  if (!path.startsWith('/')) {
+    return `${API_URL}/uploads/${path}`;
+  }
+  // Otherwise, treat as relative path from root
+  return `${API_URL}${path}`;
+};
+
 // Helper function for API calls
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_URL}${endpoint}`;

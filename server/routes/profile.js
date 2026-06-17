@@ -53,9 +53,9 @@ router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
       portfolioUrl: req.body.portfolioUrl || ""
     };
 
-    // Handle file upload
+    // Handle file upload – store RELATIVE path (fixes mixed content)
     if (req.file) {
-      updateData.profilePhoto = `http://localhost:5000/uploads/${req.file.filename}`;
+      updateData.profilePhoto = `/uploads/${req.file.filename}`; // ← FIXED: relative path
     }
 
     let activityType = "profile_updated";
@@ -72,7 +72,7 @@ router.post("/save", auth, upload.single("profilePhoto"), async (req, res) => {
       const updatedProfile = await Profile.findOneAndUpdate(
         { userId: req.user.id },
         { $set: updateData },
-        { returnDocument: 'after' } // This fixes the deprecation warning
+        { returnDocument: 'after' }
       );
       console.log("Updated existing profile:", updatedProfile._id);
     }

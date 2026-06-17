@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, memo } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import API_URL from '../config';
+import API_URL, { getImageUrl } from '../config';
 import "./EditResumes.css";
 import {
   FiUser, FiMail, FiPhone, FiMapPin, FiBriefcase, FiLinkedin,
@@ -619,7 +619,7 @@ function EditResume({ onResumeUpdated }) {
                       <div className="photo-preview">
                         {formData.profilePhoto ? (
                           <div className="photo-preview-img">
-                            <img src={formData.profilePhoto} alt="Profile" />
+                            <img src={getImageUrl(formData.profilePhoto)} alt="Profile" />
                             {isEditing && (
                               <button className="clear-photo-btn" onClick={clearProfilePhoto}>
                                 <FiTrash2 size={14} />

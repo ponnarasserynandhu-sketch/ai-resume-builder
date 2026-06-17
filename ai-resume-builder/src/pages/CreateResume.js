@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import axios from "axios";
-import API_URL from '../config';
+import API_URL, { getImageUrl } from '../config';
 import "./CreateResume.css";
 import {
   FiDownload, FiSave, FiCheck, FiDroplet, FiUploadCloud, FiZap, FiX,
@@ -336,7 +336,11 @@ const TemplateSidebar = ({ user, primaryColor, accentColor }) => (
   <div className="resume-preview template-sidebar">
     <div className="sidebar-layout">
       <div className="sidebar-left" style={{ backgroundColor: hexToRgba(primaryColor, 0.08), padding: "20px", borderRadius: "12px" }}>
-        {user.profilePhoto && (<div className="sidebar-photo" style={{ width: "120px", height: "120px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 15px", border: `3px solid ${primaryColor}` }}><img src={user.profilePhoto} alt={user.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} /></div>)}
+        {user.profilePhoto && (
+          <div className="sidebar-photo" style={{ width: "120px", height: "120px", borderRadius: "50%", overflow: "hidden", margin: "0 auto 15px", border: `3px solid ${primaryColor}` }}>
+            <img src={getImageUrl(user.profilePhoto)} alt={user.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        )}
         <h2 style={{ color: primaryColor, fontSize: "20px", textAlign: "center", margin: "0 0 5px 0" }}>{user.name || "Your Name"}</h2>
         <p className="sidebar-title" style={{ color: accentColor, fontSize: "12px", textAlign: "center", marginBottom: "20px" }}>{user.role || "Professional Title"}</p>
         <div className="sidebar-contact" style={{ marginBottom: "20px" }}>
@@ -418,7 +422,9 @@ const TemplateMinimalist = ({ user, primaryColor, accentColor }) => (
 const TemplateCreative = ({ user, primaryColor, accentColor }) => (
   <div className="resume-preview template-creative" style={{ background: "white", borderRadius: "24px", padding: "30px", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
     <div style={{ textAlign: "center", marginBottom: "30px", background: `linear-gradient(135deg, ${hexToRgba(primaryColor, 0.1)}, ${hexToRgba(accentColor, 0.05)})`, padding: "20px", borderRadius: "20px" }}>
-      {user.profilePhoto && <img src={user.profilePhoto} alt="" style={{ width: "100px", height: "100px", borderRadius: "50%", objectFit: "cover", marginBottom: "15px", border: `3px solid ${primaryColor}` }} />}
+      {user.profilePhoto && (
+        <img src={getImageUrl(user.profilePhoto)} alt="" style={{ width: "100px", height: "100px", borderRadius: "50%", objectFit: "cover", marginBottom: "15px", border: `3px solid ${primaryColor}` }} />
+      )}
       <h1 style={{ fontSize: "28px", margin: "0", color: "#1f2937" }}>{user.name || "Your Name"}</h1>
       <p style={{ fontSize: "14px", color: primaryColor, fontWeight: "500" }}>{user.role || "Professional Title"}</p>
       <div style={{ display: "flex", justifyContent: "center", gap: "12px", fontSize: "11px", flexWrap: "wrap", marginTop: "10px" }}>{user.email && <span>{user.email}</span>}{user.phone && <span>{user.phone}</span>}{user.linkedin && <span>{user.linkedin}</span>}</div>
@@ -833,7 +839,7 @@ function CreateResume({ onResumeCreated }) {
         <div className="editor-side-panel">
           <div className="form-section-card"><h3>Personal Information</h3><input type="text" name="name" placeholder="Full Name" value={user.name} onChange={handleInputChange} /><input type="text" name="role" placeholder="Professional Title" value={user.role} onChange={handleInputChange} /><div className="contact-grid"><div className="contact-field"><FiMail className="field-icon" /><input type="email" name="email" placeholder="Email" value={user.email} onChange={handleInputChange} /></div><div className="contact-field"><FiPhone className="field-icon" /><input type="text" name="phone" placeholder="Phone" value={user.phone} onChange={handleInputChange} /></div><div className="contact-field"><FiLinkedin className="field-icon" /><input type="text" name="linkedin" placeholder="LinkedIn URL" value={user.linkedin} onChange={handleInputChange} /></div><div className="contact-field"><FiGithub className="field-icon" /><input type="text" name="github" placeholder="GitHub URL" value={user.github} onChange={handleInputChange} /></div><div className="contact-field"><FiTwitter className="field-icon" /><input type="text" name="twitter" placeholder="Twitter URL" value={user.twitter} onChange={handleInputChange} /></div><div className="contact-field"><FiMapPin className="field-icon" /><input type="text" name="address" placeholder="Location" value={user.address} onChange={handleInputChange} /></div></div></div>
 
-          <div className="form-section-card"><h3><FiImage /> Profile Photo</h3><div className="profile-photo-upload"><div className="photo-preview">{user.profilePhoto ? (<div className="photo-preview-img"><img src={user.profilePhoto} alt="Profile" /><button className="clear-photo-btn" onClick={clearProfilePhoto}><FiTrash2 /></button></div>) : (<div className="photo-placeholder"><FiImage size={32} /><span>No photo</span></div>)}</div><div className="photo-upload-buttons"><label className="upload-photo-btn" disabled={uploadingPhoto}><FiUploadCloud /> {uploadingPhoto ? "Uploading..." : "Upload Image"}<input type="file" accept="image/*" onChange={handleProfilePhotoUpload} hidden /></label><input type="text" name="profilePhoto" placeholder="Or enter image URL" value={user.profilePhoto} onChange={handleProfilePhotoUrlChange} className="photo-url-input" /></div>{photoUrlError && <small className="error-message">{photoUrlError}</small>}<small>Upload a square image (max 2MB) or provide a direct URL</small></div></div>
+          <div className="form-section-card"><h3><FiImage /> Profile Photo</h3><div className="profile-photo-upload"><div className="photo-preview">{user.profilePhoto ? (<div className="photo-preview-img"><img src={getImageUrl(user.profilePhoto)} alt="Profile" /><button className="clear-photo-btn" onClick={clearProfilePhoto}><FiTrash2 /></button></div>) : (<div className="photo-placeholder"><FiImage size={32} /><span>No photo</span></div>)}</div><div className="photo-upload-buttons"><label className="upload-photo-btn" disabled={uploadingPhoto}><FiUploadCloud /> {uploadingPhoto ? "Uploading..." : "Upload Image"}<input type="file" accept="image/*" onChange={handleProfilePhotoUpload} hidden /></label><input type="text" name="profilePhoto" placeholder="Or enter image URL" value={user.profilePhoto} onChange={handleProfilePhotoUrlChange} className="photo-url-input" /></div>{photoUrlError && <small className="error-message">{photoUrlError}</small>}<small>Upload a square image (max 2MB) or provide a direct URL</small></div></div>
 
           <div className="form-section-card"><h3>Professional Summary</h3><textarea name="about" placeholder="Write a compelling professional summary..." value={user.about} onChange={handleInputChange} rows="4" /><h3>Technical Skills</h3><textarea name="skills" placeholder="Enter your skills (comma separated)" value={user.skills} onChange={handleInputChange} rows="3" /></div>
           <div className="form-section-card"><h3>Work Experience</h3><textarea name="experience" placeholder="Describe your work experience..." value={user.experience} onChange={handleInputChange} rows="5" /><h3>Projects</h3><textarea name="projects" placeholder="List your key projects..." value={user.projects} onChange={handleInputChange} rows="4" /><h3>Certifications</h3><textarea name="certificates" placeholder="List your certifications..." value={user.certificates} onChange={handleInputChange} rows="3" /><h3>Languages</h3><textarea name="languages" placeholder="List your languages..." value={user.languages} onChange={handleInputChange} rows="2" /></div>
