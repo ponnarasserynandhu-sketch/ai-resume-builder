@@ -3,7 +3,7 @@
 const getBackendURL = () => {
   // For production, use environment variable (set in Vercel)
   if (process.env.NODE_ENV === 'production') {
-    // You can either hardcode or use REACT_APP_API_URL
+    // Fallback to your deployed backend URL if REACT_APP_API_URL is not set
     return process.env.REACT_APP_API_URL || 'https://ai-resume-builder-rlwj.onrender.com';
   }
   // Development
@@ -12,31 +12,31 @@ const getBackendURL = () => {
 
 export const API_URL = getBackendURL();
 
-// Helper function to get a full image URL from a relative path
-// This fixes mixed content warnings on HTTPS production sites
+// Helper function to get a full image URL from any path
+// Fixes mixed content warnings on HTTPS production sites
 export const getImageUrl = (path) => {
   if (!path) return null;
-  
-  // If the URL points to localhost (old absolute URLs), replace with current API_URL
+
+  // If it's an old absolute localhost URL, replace with current API_URL
   if (path.startsWith('http://localhost:5000')) {
     return path.replace('http://localhost:5000', API_URL);
   }
-  
-  // If it's already a full URL (http or https), return as is
+
+  // If it's already a full URL (http or https), keep as is
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  
+
   // If it's a relative path starting with /uploads/, prepend API_URL
   if (path.startsWith('/uploads/')) {
     return `${API_URL}${path}`;
   }
-  
-  // If it's just a filename, assume it's under /uploads/
+
+  // If it's just a filename (no slashes), assume under /uploads/
   if (!path.startsWith('/')) {
     return `${API_URL}/uploads/${path}`;
   }
-  
+
   // Otherwise, treat as relative path from root
   return `${API_URL}${path}`;
 };
