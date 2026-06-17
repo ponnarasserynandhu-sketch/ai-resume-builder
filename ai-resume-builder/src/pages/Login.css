@@ -182,12 +182,64 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: white;
+  background: #ffffff;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   transition: all 0.3s ease;
+  overflow: hidden;
 }
 
+/* Completely reset input styles */
+.input-field input {
+  width: 100%;
+  padding: 14px 16px;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  font-size: 15px;
+  color: #1e293b;
+  font-family: inherit;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  margin: 0 !important;
+  line-height: normal !important;
+  min-height: auto !important;
+  height: auto !important;
+}
+
+/* Remove all autofill styles */
+.input-field input:-webkit-autofill,
+.input-field input:-webkit-autofill:hover,
+.input-field input:-webkit-autofill:focus,
+.input-field input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
+  -webkit-text-fill-color: #1e293b !important;
+  background-color: transparent !important;
+  background-clip: content-box !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Remove autofill background */
+.input-field input:-webkit-autofill::first-line {
+  font-size: 15px;
+  font-family: inherit;
+}
+
+/* Firefox autofill */
+.input-field input:-moz-autofill,
+.input-field input:-moz-autofill-preview {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.input-field input::placeholder {
+  color: #94a3b8;
+}
+
+/* Focus state - only on the container */
 .input-field.focused {
   border-color: #667eea;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
@@ -195,42 +247,38 @@
 
 .input-field.error {
   border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
-.input-field input {
-  width: 100%;
-  padding: 14px 16px;
-  border: none;
-  background: transparent;
-  font-size: 15px;
-  color: #1e293b;
-  outline: none;
-}
-
-.input-field input::placeholder {
-  color: #94a3b8;
-}
-
+/* Password toggle button */
 .password-toggle {
   position: absolute;
   right: 12px;
-  background: none;
+  background: transparent;
   border: none;
   cursor: pointer;
   color: #94a3b8;
   padding: 8px;
   display: flex;
   align-items: center;
-  transition: color 0.3s;
+  justify-content: center;
+  transition: color 0.3s ease;
+  z-index: 2;
+  outline: none;
 }
 
 .password-toggle:hover {
   color: #667eea;
 }
 
+/* Error message */
 .error-message {
-  font-size: 12px;
+  font-size: 13px;
   color: #ef4444;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border-radius: 8px;
+  border-left: 3px solid #ef4444;
   margin-top: 4px;
 }
 
@@ -313,6 +361,11 @@
 .submit-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
+}
+
+.submit-btn:disabled::before {
+  display: none;
 }
 
 .spinner {
@@ -393,7 +446,7 @@
 .admin-info-message {
   margin-top: 1.5rem;
   padding: 0.75rem 1rem;
-  background: rgba(239, 68, 68, 0.1);
+  background: #fef2f2;
   border-radius: 0.75rem;
   border-left: 3px solid #ef4444;
 }
@@ -403,12 +456,6 @@
   color: #dc2626;
   margin: 0;
   text-align: center;
-}
-
-/* Input field error state */
-.input-field.error {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
 }
 
 /* Responsive Design */
